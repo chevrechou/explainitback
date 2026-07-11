@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Explain It Back",
+    "slug": "explainitback",
+    "version": "1.0.0",
+    "scheme": "explainitback",
+    "web": {
+      "bundler": "metro",
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-av"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
