@@ -32,7 +32,7 @@ export default function TopicPicker() {
         user?.accessToken,
       )
       const sessionId = randomUUID()
-      startSession(sessionId, res.topic, res.first_message, isUrl ? null : (documentText ?? null))
+      startSession(sessionId, res.topic, res.first_message, isUrl ? null : (documentText ?? null), res.sub_concept_names ?? [])
       router.push(`/session/${sessionId}`)
     } catch (e: any) {
       alert(e.message)

@@ -32,6 +32,7 @@ class SessionStartRequest(BaseModel):
 class SessionStartResponse(BaseModel):
     first_message: str
     topic: str
+    sub_concept_names: list[str] = []
 
 
 class SessionMessageRequest(BaseModel):

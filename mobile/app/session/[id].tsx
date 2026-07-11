@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  View, Text, TextInput, Pressable, FlatList, StyleSheet, KeyboardAvoidingView, Platform,
+  View, Text, TextInput, Pressable, FlatList, StyleSheet,
+  KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
 import { api } from '../../lib/api'
@@ -10,12 +11,59 @@ import { KodaTyping } from '../../components/KodaTyping'
 import { VoiceButton } from '../../components/VoiceButton'
 import { Message } from '../../lib/types'
 
+function shortConcept(name: string) {
+  // Strip parenthetical clarifications to keep pills concise
+  return name.replace(/\s*\(.*?\)/, '').trim()
+}
+
+function ConceptsPanel({ names }: { names: string[] }) {
+  const [open, setOpen] = useState(true)
+  if (!names.length) return null
+  return (
+    <View style={cpStyles.wrapper}>
+      <Pressable style={cpStyles.header} onPress={() => setOpen((o) => !o)}>
+        <Text style={cpStyles.headerText}>Concepts Koda will quiz you on</Text>
+        <Text style={cpStyles.chevron}>{open ? '▲' : '▼'}</Text>
+      </Pressable>
+      {open && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cpStyles.scroll} contentContainerStyle={cpStyles.scrollContent}>
+          {names.map((n, i) => (
+            <View key={i} style={cpStyles.pill}>
+              <View style={cpStyles.circle} />
+              <Text style={cpStyles.pillText}>{shortConcept(n)}</Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+      <View style={cpStyles.tip}>
+        <Text style={cpStyles.tipText}>
+          💡 Be specific • Use examples • Correct Koda if he's wrong • Explain the WHY
+        </Text>
+      </View>
+    </View>
+  )
+}
+
+const cpStyles = StyleSheet.create({
+  wrapper: { backgroundColor: '#f0fdf4', borderBottomWidth: 1, borderColor: '#bbf7d0' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6 },
+  headerText: { fontSize: 12, fontWeight: '700', color: '#166534', letterSpacing: 0.3, textTransform: 'uppercase' },
+  chevron: { fontSize: 10, color: '#166534' },
+  scroll: { paddingBottom: 8 },
+  scrollContent: { paddingHorizontal: 16, gap: 8, flexDirection: 'row' },
+  pill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#86efac', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, gap: 6 },
+  circle: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#86efac' },
+  pillText: { fontSize: 12, color: '#15803d', fontWeight: '500' },
+  tip: { paddingHorizontal: 16, paddingBottom: 10 },
+  tipText: { fontSize: 11, color: '#166534', opacity: 0.7 },
+})
+
 export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [input, setInput] = useState('')
   const [waiting, setWaiting] = useState(false)
   const listRef = useRef<FlatList>(null)
-  const { session, user, addMessages, completeSession } = useStore()
+  const { session, user, addUserMessage, addAssistantMessage, completeSession } = useStore()
 
   useEffect(() => {
     if (session?.isComplete && session.scorecard) {
@@ -26,33 +74,34 @@ export default function SessionScreen() {
 
   async function sendMessage(text: string) {
     if (!text.trim() || waiting || !session) return
+    const trimmed = text.trim()
     setInput('')
     setWaiting(true)
 
-    const userMsg: Message = { role: 'user', content: text.trim() }
+    const userMsg: Message = { role: 'user', content: trimmed }
+    addUserMessage(userMsg)
 
     try {
       const res = await api.sendMessage(
         session.topic,
         session.messages,
-        text.trim(),
+        trimmed,
         session.documentText,
         user?.accessToken,
       )
       const assistantMsg: Message = { role: 'assistant', content: res.response }
+      addAssistantMessage(assistantMsg, res.turn_count)
 
-      addMessages(userMsg, assistantMsg, res.turn_count)
       if (res.is_complete) {
         if (res.assessment) {
           completeSession(res.assessment, res.turn_count)
         } else {
-          // max turns hit without assessment block — scorecard screen handles null gracefully
           setTimeout(() => router.replace(`/scorecard/${id}`), 1500)
         }
       }
-    } catch (e: any) {
+    } catch {
       const errMsg: Message = { role: 'assistant', content: "Sorry, I zoned out for a sec. Can you say that again?" }
-      addMessages(userMsg, errMsg, session.turnCount + 1)
+      addAssistantMessage(errMsg, session.turnCount + 1)
     } finally {
       setWaiting(false)
     }
@@ -79,6 +128,8 @@ export default function SessionScreen() {
         <Text style={styles.turnCount}>{session.turnCount} / 20</Text>
       </View>
 
+      <ConceptsPanel names={session.subConceptNames} />
+
       <FlatList
         ref={listRef}
         data={session.messages}
@@ -92,12 +143,18 @@ export default function SessionScreen() {
       <View style={styles.inputBar}>
         <TextInput
           style={styles.textInput}
-          placeholder="Type your explanation..."
+          placeholder="Explain it to Koda... (Shift+Enter for newline)"
           value={input}
           onChangeText={setInput}
-          onSubmitEditing={() => sendMessage(input)}
+          onSubmitEditing={() => !Platform.OS || Platform.OS === 'ios' || Platform.OS === 'android' ? sendMessage(input) : undefined}
           returnKeyType="send"
           multiline
+          onKeyPress={(e: any) => {
+            if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+              e.preventDefault?.()
+              sendMessage(input)
+            }
+          }}
         />
         <VoiceButton onTranscript={(t) => sendMessage(t)} disabled={waiting} />
         <Pressable

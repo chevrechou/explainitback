@@ -10,7 +10,7 @@ from app.models.schemas import (
 from app.services.ai import chat
 from app.services.scoring import extract_assessment
 from app.services.scraper import fetch_url_text
-from app.prompts.socratic import build_system_prompt
+from app.prompts.socratic import build_system_prompt, TOPIC_SUBCONCEPTS
 from app.config import settings
 
 router = APIRouter()
@@ -40,7 +40,9 @@ async def start_session(request: Request, req: SessionStartRequest):
     system_prompt = build_system_prompt(req.topic, document_text)
     raw = await chat(system_prompt, [], topic=req.topic)
     first_message, _ = extract_assessment(raw)
-    return SessionStartResponse(first_message=first_message, topic=req.topic)
+    normalized = req.topic.lower().replace(" ", "_")
+    sub_concept_names = TOPIC_SUBCONCEPTS.get(normalized, [])
+    return SessionStartResponse(first_message=first_message, topic=req.topic, sub_concept_names=sub_concept_names)
 
 
 @router.post("/message", response_model=SessionMessageResponse)

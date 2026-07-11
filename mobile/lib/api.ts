@@ -39,7 +39,7 @@ export const api = {
     documentUrl?: string | null,
     token?: string | null,
   ) =>
-    request<{ first_message: string; topic: string }>(
+    request<{ first_message: string; topic: string; sub_concept_names: string[] }>(
       '/sessions/start',
       {
         method: 'POST',

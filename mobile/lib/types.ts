@@ -39,4 +39,5 @@ export type SessionState = {
   documentText: string | null
   scorecard: Assessment | null
   isComplete: boolean
+  subConceptNames: string[]
 }

@@ -12,8 +12,10 @@ type Store = {
     topic: string,
     firstMessage: string,
     documentText?: string | null,
+    subConceptNames?: string[],
   ) => void
-  addMessages: (userMsg: Message, assistantMsg: Message, turnCount: number) => void
+  addUserMessage: (msg: Message) => void
+  addAssistantMessage: (msg: Message, turnCount: number) => void
   completeSession: (scorecard: Assessment, turnCount: number) => void
   clearSession: () => void
 }
@@ -36,7 +38,7 @@ export const useStore = create<Store>((set) => ({
     if (raw) set({ user: JSON.parse(raw) as User })
   },
 
-  startSession: (sessionId, topic, firstMessage, documentText = null) =>
+  startSession: (sessionId, topic, firstMessage, documentText = null, subConceptNames = []) =>
     set({
       session: {
         sessionId,
@@ -46,17 +48,21 @@ export const useStore = create<Store>((set) => ({
         documentText,
         scorecard: null,
         isComplete: false,
+        subConceptNames,
       },
     }),
 
-  addMessages: (userMsg, assistantMsg, turnCount) =>
+  addUserMessage: (msg) =>
     set((state) => ({
       session: state.session
-        ? {
-            ...state.session,
-            messages: [...state.session.messages, userMsg, assistantMsg],
-            turnCount,
-          }
+        ? { ...state.session, messages: [...state.session.messages, msg] }
+        : null,
+    })),
+
+  addAssistantMessage: (msg, turnCount) =>
+    set((state) => ({
+      session: state.session
+        ? { ...state.session, messages: [...state.session.messages, msg], turnCount }
         : null,
     })),
 
