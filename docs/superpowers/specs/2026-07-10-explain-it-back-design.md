@@ -97,13 +97,15 @@ The backend constructs the AI prompt from the incoming history.
 
 ### API endpoints
 ```
-POST /auth/signup     { email, password } → { user_id, access_token }
-POST /auth/login      { email, password } → { user_id, access_token }
-POST /sessions/start  { topic, document_text?, document_url? } → { first_message, topic, document_text? }
+POST /auth/signup      { email, password } → { user_id, access_token }
+POST /auth/login       { email, password } → { user_id, access_token }
+POST /sessions/start   { topic, document_text?, document_url? } → { first_message, topic }
 POST /sessions/message { topic, messages, user_message, document_text? } → { response, turn_count, is_complete, assessment? }
-GET  /topics          → { topics: [...], custom_allowed: true }
-GET  /health          → { status: "ok" }
+GET  /topics           → { topics: [...], custom_allowed: true }
+GET  /health           → { status: "ok" }
 ```
+
+Session IDs are generated client-side (a UUID created when the user starts a session). The backend is stateless and never issues or tracks session IDs — the ID is only used for client-side routing (`app/session/[id].tsx`).
 
 ### AI provider abstraction
 ```
@@ -184,7 +186,7 @@ Session state lives in Zustand, cleared when the user starts a new session or na
 - Scrollable message area: Koda bubbles left (green KODA label, light bg), user bubbles right (dark bg, white text)
 - Typing indicator while waiting for AI response
 - **Voice is primary input on mobile:** large hold-to-talk `VoiceButton` centered in bottom bar
-  - Web: Web Speech API (Chrome/Edge)
+  - Web: Web Speech API (Chrome/Edge only — not supported in Safari; show a fallback text-only notice in Safari)
   - Mobile: `expo-av` records audio → sends to Groq Whisper endpoint for transcription
 - Text input alongside voice button as secondary input
 - Optimistic UI: user message appears immediately, then typing indicator, then Koda's response
