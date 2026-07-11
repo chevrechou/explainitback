@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Platform, Pressable, StyleSheet, Text, View, ActivityIndicator } from 'react-native'
+import { Platform, Pressable, StyleSheet, Text, ActivityIndicator } from 'react-native'
 import { Audio } from 'expo-av'
 import { api } from '../lib/api'
 import { useStore } from '../lib/store'
@@ -55,6 +55,7 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     recognition.interimResults = false
     recognition.onstart = () => setState('recording')
     recognition.onend = () => setState('idle')
+    recognition.onerror = () => setState('idle')
     recognition.onresult = (e: any) => onTranscript(e.results[0][0].transcript)
     recognition.start()
   }
