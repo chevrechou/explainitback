@@ -74,7 +74,8 @@ async def send_message(request: Request, req: SessionMessageRequest):
 
 
 @router.post("/transcribe")
-async def transcribe_audio(audio: UploadFile = File(...)):
+@limiter.limit("10/minute")
+async def transcribe_audio(request: Request, audio: UploadFile = File(...)):
     from app.services.groq import groq_transcribe
     content = await audio.read()
     text = await groq_transcribe(content, audio.filename or "audio.m4a")

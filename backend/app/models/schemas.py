@@ -1,10 +1,10 @@
 from __future__ import annotations
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Literal, Optional
 
 
 class Message(BaseModel):
-    role: str  # "user" | "assistant"
+    role: Literal['user', 'assistant']
     content: str
 
 
