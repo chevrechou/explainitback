@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.env
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+*.orig.*
+
+# OS
+.DS_Store
+
+# Superpowers
+.superpowers/
