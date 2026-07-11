@@ -1,17 +1,96 @@
-import { Text, View, StyleSheet } from "react-native";
+import { useEffect, useState } from 'react'
+import {
+  View, Text, ScrollView, StyleSheet, Pressable, FlatList, ActivityIndicator,
+} from 'react-native'
+import { router } from 'expo-router'
+import { randomUUID } from 'expo-crypto'
+import { api } from '../lib/api'
+import { useStore } from '../lib/store'
+import { TopicCard } from '../components/TopicCard'
+import { DocumentInput } from '../components/DocumentInput'
+import { Topic } from '../lib/types'
 
-export default function Index() {
+export default function TopicPicker() {
+  const [topics, setTopics] = useState<Topic[]>([])
+  const [docValue, setDocValue] = useState('')
+  const [docLabel, setDocLabel] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { user, startSession } = useStore()
+
+  useEffect(() => {
+    api.getTopics().then((r) => setTopics(r.topics)).catch(() => {})
+  }, [])
+
+  async function handleStart(topic: string, documentText?: string) {
+    setLoading(true)
+    try {
+      const isUrl = documentText?.startsWith('http')
+      const res = await api.startSession(
+        topic,
+        isUrl ? null : documentText,
+        isUrl ? documentText : null,
+        user?.accessToken,
+      )
+      const sessionId = randomUUID()
+      startSession(sessionId, res.topic, res.first_message, isUrl ? null : (documentText ?? null))
+      router.push(`/session/${sessionId}`)
+    } catch (e: any) {
+      alert(e.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <View style={styles.container}>
-      <Text>Explain It Back</Text>
-    </View>
-  );
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Explain It Back</Text>
+        {user ? (
+          <Pressable onPress={() => useStore.getState().setUser(null)}>
+            <Text style={styles.authLink}>Sign out</Text>
+          </Pressable>
+        ) : (
+          <Pressable onPress={() => router.push('/auth')}>
+            <Text style={styles.authLink}>Sign in</Text>
+          </Pressable>
+        )}
+      </View>
+
+      <Text style={styles.subtitle}>
+        Pick a topic and teach it to Koda. He'll ask questions until he gets it — or until he finds out you don't.
+      </Text>
+
+      {loading && <ActivityIndicator style={{ marginVertical: 24 }} color="#22c55e" />}
+
+      <FlatList
+        data={topics}
+        numColumns={2}
+        keyExtractor={(t) => t.id}
+        renderItem={({ item }) => (
+          <TopicCard topic={item} onPress={() => !loading && handleStart(item.name)} />
+        )}
+        scrollEnabled={false}
+        columnWrapperStyle={styles.row}
+      />
+
+      <DocumentInput
+        value={docValue}
+        label={docLabel}
+        onChangeValue={setDocValue}
+        onChangeLabel={setDocLabel}
+        onSubmit={() => handleStart(docLabel || 'Custom Topic', docValue)}
+        disabled={loading || !docValue.trim()}
+      />
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+  container: { flex: 1, backgroundColor: '#fafaf9' },
+  content: { padding: 20, paddingBottom: 48 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  title: { fontSize: 22, fontWeight: '800', color: '#0f172a' },
+  authLink: { color: '#22c55e', fontWeight: '600' },
+  subtitle: { color: '#64748b', fontSize: 14, marginBottom: 20, lineHeight: 20 },
+  row: { marginHorizontal: -6 },
+})
