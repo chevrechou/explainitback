@@ -17,9 +17,10 @@ export function ScorecardView({ assessment }: Props) {
         <Text style={[styles.score, { color: scoreColor(assessment.overall_score) }]}>
           {assessment.overall_score}
         </Text>
-        <Text style={styles.scoreLabel}>/ 100</Text>
+        <Text style={styles.scoreLabel}>Comprehension Score</Text>
       </View>
 
+      <Text style={styles.sectionTitle}>Concepts</Text>
       <View style={styles.pillsRow}>
         {assessment.sub_concepts.map((c, i) => (
           <ConceptPill key={i} concept={c} />
@@ -27,12 +28,12 @@ export function ScorecardView({ assessment }: Props) {
       </View>
 
       <View style={[styles.card, styles.greenCard]}>
-        <Text style={styles.cardTitle}>Strongest Point</Text>
+        <Text style={styles.cardTitle}>Strongest point</Text>
         <Text style={styles.cardBody}>{assessment.strongest_point}</Text>
       </View>
 
       <View style={[styles.card, styles.yellowCard]}>
-        <Text style={styles.cardTitle}>Biggest Gap</Text>
+        <Text style={styles.cardTitle}>Biggest gap</Text>
         <Text style={styles.cardBody}>{assessment.biggest_gap}</Text>
       </View>
 
@@ -52,6 +53,7 @@ const styles = StyleSheet.create({
   scoreBlock: { alignItems: 'center', marginVertical: 24 },
   score: { fontSize: 72, fontWeight: '800' },
   scoreLabel: { fontSize: 15, color: '#64748b', marginTop: 4 },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#0f172a', marginTop: 8, marginBottom: 8 },
   pillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   card: { borderRadius: 12, padding: 16, marginTop: 12 },
   greenCard: { backgroundColor: '#f0fdf4', borderWidth: 1, borderColor: '#bbf7d0' },

@@ -23,7 +23,7 @@ export function ConceptPill({ concept }: Props) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 5 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
   pillText: { fontSize: 12, fontWeight: '600' },
   name: { fontSize: 14, color: '#0f172a', flex: 1 },
 })
