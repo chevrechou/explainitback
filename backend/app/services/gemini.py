@@ -25,4 +25,8 @@ async def gemini_chat(system_prompt: str, messages: list[dict]) -> str:
             f"{_GEMINI_URL}?key={settings.gemini_api_key}", json=payload
         )
         resp.raise_for_status()
-    return resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+    data = resp.json()
+    candidates = data.get("candidates", [])
+    if not candidates:
+        raise ValueError(f"Gemini returned no candidates: {data.get('promptFeedback')}")
+    return candidates[0]["content"]["parts"][0]["text"]

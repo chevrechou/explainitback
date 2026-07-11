@@ -31,11 +31,9 @@ async def chat(system_prompt: str, messages: list[dict], topic: str = "") -> str
         try:
             return await _retry(lambda: gemini_chat(system_prompt, messages))
         except Exception as exc:
-            if "429" in str(exc):
-                logger.warning("Gemini rate-limited; falling back to Groq")
-                from app.services.groq import groq_chat
-                return await groq_chat(system_prompt, messages)
-            raise
+            logger.warning("Gemini failed (%s); falling back to Groq", exc)
+            from app.services.groq import groq_chat
+            return await groq_chat(system_prompt, messages)
 
     if provider == "groq":
         from app.services.groq import groq_chat

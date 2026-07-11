@@ -41,11 +41,14 @@ export default function SessionScreen() {
       )
       const assistantMsg: Message = { role: 'assistant', content: res.response }
 
-      if (res.is_complete && res.assessment) {
-        addMessages(userMsg, assistantMsg, res.turn_count)
-        completeSession(res.assessment, res.turn_count)
-      } else {
-        addMessages(userMsg, assistantMsg, res.turn_count)
+      addMessages(userMsg, assistantMsg, res.turn_count)
+      if (res.is_complete) {
+        if (res.assessment) {
+          completeSession(res.assessment, res.turn_count)
+        } else {
+          // max turns hit without assessment block — scorecard screen handles null gracefully
+          setTimeout(() => router.replace(`/scorecard/${id}`), 1500)
+        }
       }
     } catch (e: any) {
       const errMsg: Message = { role: 'assistant', content: "Sorry, I zoned out for a sec. Can you say that again?" }
