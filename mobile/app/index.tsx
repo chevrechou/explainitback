@@ -120,11 +120,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingTop: 8,
   },
-  title: { fontSize: 22, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.3 },
+  title: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.3 },
   tagline: { fontSize: 12, color: '#88887E', marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
   authLink: { fontSize: 13, color: '#C8401A', fontWeight: '600', marginTop: 4 },
 
-  subtitle: { fontSize: 16, color: '#1A1A1A', lineHeight: 26, marginBottom: 28 },
+  subtitle: { fontSize: 17, color: '#1A1A1A', lineHeight: 28, marginBottom: 28 },
 
   divider: { height: 1, backgroundColor: '#D5D1C8', marginBottom: 20 },
 

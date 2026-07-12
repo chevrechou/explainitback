@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
   },
   num: { fontSize: 12, fontWeight: '600', color: '#88887E', width: 24 },
   info: { flex: 1 },
-  name: { fontSize: 15, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
-  subject: { fontSize: 12, color: '#88887E', textTransform: 'uppercase', letterSpacing: 0.4 },
+  name: { fontSize: 17, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  subject: { fontSize: 13, color: '#88887E', textTransform: 'uppercase', letterSpacing: 0.4 },
   arrow: { fontSize: 16, color: '#88887E' },
 })

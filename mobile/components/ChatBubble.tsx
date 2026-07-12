@@ -35,6 +35,6 @@ const styles = StyleSheet.create({
     borderColor: '#D5D1C8',
   },
   userBubble: { backgroundColor: '#1A1A1A' },
-  text: { fontSize: 15, color: '#1A1A1A', lineHeight: 23 },
+  text: { fontSize: 17, color: '#1A1A1A', lineHeight: 26 },
   userText: { color: '#FFFFFF' },
 })

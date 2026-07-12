@@ -52,7 +52,7 @@ const diagramStyles = StyleSheet.create({
   text: { fontFamily: 'monospace', fontSize: 12, color: '#1A1A1A', lineHeight: 18 },
 })
 
-const explanationTextStyle = { fontSize: 13, color: '#1A1A1A', lineHeight: 21 } as const
+const explanationTextStyle = { fontSize: 15, color: '#1A1A1A', lineHeight: 23 } as const
 
 export function scoreColor(score: number) {
   if (score >= 70) return '#1A6B3C'
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     marginBottom: 6,
   },
-  summaryText: { fontSize: 14, color: '#1A1A1A', lineHeight: 22 },
+  summaryText: { fontSize: 16, color: '#1A1A1A', lineHeight: 24 },
 
   // Section header
   sectionHeader: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   statusBar: { width: 3, height: 32, flexShrink: 0 },
   conceptIndex: { fontSize: 11, fontWeight: '700', color: '#88887E', width: 22, flexShrink: 0 },
-  conceptName: { flex: 1, fontSize: 14, fontWeight: '500', color: '#1A1A1A', lineHeight: 20 },
+  conceptName: { flex: 1, fontSize: 15, fontWeight: '500', color: '#1A1A1A', lineHeight: 22 },
   statusTag: { paddingHorizontal: 7, paddingVertical: 3, flexShrink: 0 },
   statusTagText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
   toggle: { fontSize: 16, color: '#88887E', width: 16, textAlign: 'center', flexShrink: 0 },
@@ -254,5 +254,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     marginBottom: 5,
   },
-  evidenceText: { fontSize: 13, color: '#5A5A52', lineHeight: 20, fontStyle: 'italic' },
+  evidenceText: { fontSize: 15, color: '#5A5A52', lineHeight: 22, fontStyle: 'italic' },
 })
