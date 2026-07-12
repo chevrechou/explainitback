@@ -12,6 +12,7 @@ class SubConcept(BaseModel):
     name: str
     status: str  # "NOT_ADDRESSED" | "SURFACE" | "UNDERSTOOD"
     evidence: str
+    correct_explanation: str = ""
 
 
 class Assessment(BaseModel):

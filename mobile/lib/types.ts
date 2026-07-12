@@ -7,6 +7,7 @@ export type SubConcept = {
   name: string
   status: 'NOT_ADDRESSED' | 'SURFACE' | 'UNDERSTOOD'
   evidence: string
+  correct_explanation: string
 }
 
 export type Assessment = {

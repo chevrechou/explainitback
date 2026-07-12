@@ -9,9 +9,11 @@ type Props = { onTranscript: (text: string) => void; disabled?: boolean }
 export function VoiceButton({ onTranscript, disabled }: Props) {
   const [state, setState] = useState<'idle' | 'recording' | 'transcribing'>('idle')
   const recordingRef = useRef<Audio.Recording | null>(null)
-  // Web Speech API ref so we can stop it on demand
   const recognitionRef = useRef<any>(null)
   const transcriptRef = useRef('')
+  // Always call the latest onTranscript even if the prop changed after recording started
+  const onTranscriptRef = useRef(onTranscript)
+  useEffect(() => { onTranscriptRef.current = onTranscript }, [onTranscript])
   const user = useStore((s) => s.user)
   const ring1 = useRef(new Animated.Value(0)).current
   const ring2 = useRef(new Animated.Value(0)).current
@@ -64,7 +66,7 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     try {
       const blob = await (await fetch(uri)).blob()
       const { text } = await api.transcribeAudio(blob, 'audio.m4a', user?.accessToken)
-      onTranscript(text)
+      onTranscriptRef.current(text)
     } catch {
       // silently ignore transcription errors
     } finally {
@@ -96,7 +98,7 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     recognition.onend = () => {
       setState('idle')
       const final = transcriptRef.current.trim()
-      if (final) onTranscript(final)
+      if (final) onTranscriptRef.current(final)
       transcriptRef.current = ''
     }
     recognition.onerror = () => { setState('idle'); transcriptRef.current = '' }

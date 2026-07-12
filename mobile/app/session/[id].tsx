@@ -62,12 +62,12 @@ export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [input, setInput] = useState('')
   const [waiting, setWaiting] = useState(false)
-  // Local display messages — updated immediately on send so bubble appears at once
-  const [displayMessages, setDisplayMessages] = useState<Message[]>([])
-  const listRef = useRef<FlatList>(null)
   const { session, user, addUserMessage, addAssistantMessage, completeSession } = useStore()
+  // Seeded lazily from the store; updated immediately on send (don't wait for Zustand re-render)
+  const [displayMessages, setDisplayMessages] = useState<Message[]>(() => session?.messages ?? [])
+  const listRef = useRef<FlatList>(null)
 
-  // Sync display messages whenever the store updates (new assistant message, etc.)
+  // Sync whenever the store grows (assistant reply, error message, etc.)
   useEffect(() => {
     if (session?.messages) setDisplayMessages(session.messages)
   }, [session?.messages])
@@ -115,11 +115,6 @@ export default function SessionScreen() {
     } finally {
       setWaiting(false)
     }
-  }
-
-  // Seed display messages once on first render
-  if (displayMessages.length === 0 && session?.messages.length) {
-    setDisplayMessages(session.messages)
   }
 
   if (!session) {
