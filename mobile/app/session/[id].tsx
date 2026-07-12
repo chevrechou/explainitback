@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  View, Text, TextInput, Pressable, FlatList, StyleSheet,
+  View, Text, TextInput, Pressable, StyleSheet,
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native'
 import { router, useLocalSearchParams } from 'expo-router'
@@ -67,7 +67,7 @@ export default function SessionScreen() {
   // Each mutation (user send, assistant reply, error) is applied directly here
   // AND to the store. No useEffect sync so there's no race with optimistic updates.
   const [displayMessages, setDisplayMessages] = useState<Message[]>(() => session?.messages ?? [])
-  const listRef = useRef<FlatList>(null)
+  const scrollRef = useRef<ScrollView>(null)
 
   useEffect(() => {
     if (session?.isComplete && session.scorecard) {
@@ -139,16 +139,17 @@ export default function SessionScreen() {
 
       <ConceptsPanel names={session.subConceptNames} />
 
-      <FlatList
-        ref={listRef}
-        data={displayMessages}
-        keyExtractor={(_, i) => String(i)}
-        renderItem={({ item }) => <ChatBubble message={item} />}
-        ListFooterComponent={waiting ? <KodaTyping /> : null}
+      <ScrollView
+        ref={scrollRef}
+        style={styles.messageScroll}
         contentContainerStyle={styles.list}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
-        extraData={displayMessages.length}
-      />
+        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+      >
+        {displayMessages.map((msg, i) => (
+          <ChatBubble key={i} message={msg} />
+        ))}
+        {waiting && <KodaTyping />}
+      </ScrollView>
 
       <View style={styles.inputBar}>
         <TextInput
@@ -192,6 +193,7 @@ const styles = StyleSheet.create({
   back: { fontSize: 20, color: '#0f172a' },
   topBarTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: '#0f172a' },
   turnCount: { fontSize: 13, color: '#64748b' },
+  messageScroll: { flex: 1 },
   list: { padding: 16, paddingBottom: 8 },
   inputBar: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 8,

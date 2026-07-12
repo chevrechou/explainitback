@@ -77,9 +77,14 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
   // ── Web (Chrome / Edge) — click to start, click again to stop ────────
   function handleWebVoice() {
     if (state === 'recording') {
-      // User-initiated stop
+      // Deliver transcript immediately — don't wait for onend (avoids race
+      // condition where recognition is already stopped in the auto-restart window)
       manualStopRef.current = true
-      recognitionRef.current?.stop()
+      try { recognitionRef.current?.stop() } catch {}
+      setState('idle')
+      const final = transcriptRef.current.trim()
+      if (final) onTranscriptRef.current(final)
+      transcriptRef.current = ''
       return
     }
 
@@ -99,26 +104,21 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     recognition.onstart = () => setState('recording')
 
     recognition.onend = () => {
-      if (!manualStopRef.current) {
-        // Browser auto-stopped (silence timeout) — restart silently to keep recording
-        setTimeout(() => { try { recognition.start() } catch {} }, 100)
-        return
-      }
-      // User clicked stop — deliver transcript
-      setState('idle')
-      const final = transcriptRef.current.trim()
-      if (final) onTranscriptRef.current(final)
-      transcriptRef.current = ''
+      if (manualStopRef.current) return // already handled by manual stop
+      // Browser auto-stopped (silence) — restart silently
+      setTimeout(() => {
+        if (!manualStopRef.current) {
+          try { recognition.start() } catch {}
+        }
+      }, 100)
     }
 
     recognition.onerror = (e: any) => {
-      // Permission errors are unrecoverable — abort
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
         manualStopRef.current = true
         setState('idle')
         transcriptRef.current = ''
       }
-      // no-speech / aborted / network errors: onend will restart automatically
     }
 
     recognition.onresult = (e: any) => {
