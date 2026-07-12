@@ -63,14 +63,11 @@ export default function SessionScreen() {
   const [input, setInput] = useState('')
   const [waiting, setWaiting] = useState(false)
   const { session, user, addUserMessage, addAssistantMessage, completeSession } = useStore()
-  // Seeded lazily from the store; updated immediately on send (don't wait for Zustand re-render)
+  // Driven entirely by local state — never synced from store after mount.
+  // Each mutation (user send, assistant reply, error) is applied directly here
+  // AND to the store. No useEffect sync so there's no race with optimistic updates.
   const [displayMessages, setDisplayMessages] = useState<Message[]>(() => session?.messages ?? [])
   const listRef = useRef<FlatList>(null)
-
-  // Sync whenever the store grows (assistant reply, error message, etc.)
-  useEffect(() => {
-    if (session?.messages) setDisplayMessages(session.messages)
-  }, [session?.messages])
 
   useEffect(() => {
     if (session?.isComplete && session.scorecard) {
@@ -99,6 +96,7 @@ export default function SessionScreen() {
         user?.accessToken,
       )
       const assistantMsg: Message = { role: 'assistant', content: res.response }
+      setDisplayMessages(prev => [...prev, assistantMsg])
       addAssistantMessage(assistantMsg, res.turn_count)
 
       if (res.is_complete) {
@@ -111,6 +109,7 @@ export default function SessionScreen() {
     } catch (err: any) {
       const detail = err?.message ?? 'Unknown error'
       const errMsg: Message = { role: 'assistant', content: `⚠️ ${detail}` }
+      setDisplayMessages(prev => [...prev, errMsg])
       addAssistantMessage(errMsg, session.turnCount + 1)
     } finally {
       setWaiting(false)

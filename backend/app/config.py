@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_service_key: str = ""
-    ai_max_tokens: int = 400
+    ai_max_tokens: int = 2000
     max_turns_per_session: int = 6
     document_max_tokens: int = 8000
 
