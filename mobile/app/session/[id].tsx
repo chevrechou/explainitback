@@ -99,8 +99,9 @@ export default function SessionScreen() {
           setTimeout(() => router.replace(`/scorecard/${id}`), 1500)
         }
       }
-    } catch {
-      const errMsg: Message = { role: 'assistant', content: "Sorry, I zoned out for a sec. Can you say that again?" }
+    } catch (err: any) {
+      const detail = err?.message ?? 'Unknown error'
+      const errMsg: Message = { role: 'assistant', content: `⚠️ ${detail}` }
       addAssistantMessage(errMsg, session.turnCount + 1)
     } finally {
       setWaiting(false)

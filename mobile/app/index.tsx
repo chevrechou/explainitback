@@ -32,6 +32,8 @@ export default function TopicPicker() {
   const { user, startSession } = useStore()
 
   useEffect(() => {
+    // Pre-warm the backend (Render free tier cold starts take ~30s)
+    fetch(`${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000'}/health`).catch(() => {})
     api.getTopics().then((r) => setTopics(r.topics)).catch(() => {})
   }, [])
 

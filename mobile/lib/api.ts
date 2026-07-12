@@ -6,15 +6,25 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
   token?: string | null,
+  timeoutMs = 45_000,
 ): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
-  const res = await fetch(`${BASE}${path}`, { ...options, headers })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error((err as any).detail ?? `HTTP ${res.status}`)
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    const res = await fetch(`${BASE}${path}`, { ...options, headers, signal: controller.signal })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error((err as any).detail ?? `HTTP ${res.status}`)
+    }
+    return res.json() as Promise<T>
+  } catch (err: any) {
+    if (err.name === 'AbortError') throw new Error('Request timed out — the server may be waking up. Try again in a moment.')
+    throw err
+  } finally {
+    clearTimeout(timer)
   }
-  return res.json() as Promise<T>
 }
 
 export const api = {
