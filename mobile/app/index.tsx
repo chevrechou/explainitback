@@ -103,7 +103,7 @@ export default function TopicPicker() {
         <Text style={styles.tip}>• Explain the WHY, not just the WHAT</Text>
         <Text style={styles.tip}>• Give concrete examples</Text>
         <Text style={styles.tip}>• If Koda misunderstands, correct him — that's part of the test</Text>
-        <Text style={styles.tip}>• You have up to 20 turns before Koda wraps up</Text>
+        <Text style={styles.tip}>• You have 6 turns — make every answer count</Text>
       </View>
 
       {/* Topics */}
