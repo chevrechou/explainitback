@@ -98,11 +98,15 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
           try {
             // @ts-ignore
             const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
-            const ext = (mr.mimeType || '').includes('ogg') ? 'ogg' : 'webm'
+            const mimeType: string = (mr as any).mimeType || 'audio/webm'
+            const ext = mimeType.includes('ogg') ? 'ogg' : 'webm'
             const { text } = await api.transcribeAudio(blob, `audio.${ext}`, user?.accessToken)
             if (text?.trim()) onTranscriptRef.current(text.trim())
-          } catch {}
-          setState('idle')
+          } catch (err: any) {
+            onTranscriptRef.current(`⚠️ Transcription failed: ${err?.message ?? 'unknown error'}`)
+          } finally {
+            setState('idle')
+          }
         }
 
         mr.start()
