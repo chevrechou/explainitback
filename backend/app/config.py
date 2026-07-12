@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     supabase_anon_key: str = ""
     supabase_service_key: str = ""
     ai_max_tokens: int = 2000
-    max_turns_per_session: int = 6
+    max_turns_per_session: int = 8
     document_max_tokens: int = 8000
 
     model_config = {"env_file": ".env"}

@@ -134,7 +134,7 @@ export default function SessionScreen() {
       <View style={styles.topBar}>
         <Pressable onPress={() => router.replace('/')}><Text style={styles.back}>←</Text></Pressable>
         <Text style={styles.topBarTitle} numberOfLines={1}>Teaching Koda: {session.topic}</Text>
-        <Text style={styles.turnCount}>{session.turnCount} / 6</Text>
+        <Text style={styles.turnCount}>Turn {session.turnCount}</Text>
       </View>
 
       <ConceptsPanel names={session.subConceptNames} />

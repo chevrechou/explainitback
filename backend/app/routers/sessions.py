@@ -67,6 +67,16 @@ async def send_message(request: Request, req: SessionMessageRequest):
     visible, assessment = extract_assessment(raw)
 
     is_complete = assessment is not None or turn_count >= settings.max_turns_per_session
+
+    # Force-generate assessment if session is ending but model didn't output one
+    if is_complete and assessment is None:
+        force_history = history + [
+            {"role": "assistant", "content": visible},
+            {"role": "user", "content": "Generate my assessment now."},
+        ]
+        raw2 = await chat(system_prompt, force_history, topic=req.topic)
+        _, assessment = extract_assessment(raw2)
+
     return SessionMessageResponse(
         response=visible,
         turn_count=turn_count,
