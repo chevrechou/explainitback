@@ -62,8 +62,15 @@ export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [input, setInput] = useState('')
   const [waiting, setWaiting] = useState(false)
+  // Local display messages — updated immediately on send so bubble appears at once
+  const [displayMessages, setDisplayMessages] = useState<Message[]>([])
   const listRef = useRef<FlatList>(null)
   const { session, user, addUserMessage, addAssistantMessage, completeSession } = useStore()
+
+  // Sync display messages whenever the store updates (new assistant message, etc.)
+  useEffect(() => {
+    if (session?.messages) setDisplayMessages(session.messages)
+  }, [session?.messages])
 
   useEffect(() => {
     if (session?.isComplete && session.scorecard) {
@@ -79,6 +86,8 @@ export default function SessionScreen() {
     setWaiting(true)
 
     const userMsg: Message = { role: 'user', content: trimmed }
+    // Show user bubble immediately via local state (don't wait for store re-render)
+    setDisplayMessages((prev) => [...prev, userMsg])
     addUserMessage(userMsg)
 
     try {
@@ -108,6 +117,11 @@ export default function SessionScreen() {
     }
   }
 
+  // Seed display messages once on first render
+  if (displayMessages.length === 0 && session?.messages.length) {
+    setDisplayMessages(session.messages)
+  }
+
   if (!session) {
     return (
       <View style={styles.center}>
@@ -133,12 +147,13 @@ export default function SessionScreen() {
 
       <FlatList
         ref={listRef}
-        data={session.messages}
+        data={displayMessages}
         keyExtractor={(_, i) => String(i)}
         renderItem={({ item }) => <ChatBubble message={item} />}
         ListFooterComponent={waiting ? <KodaTyping /> : null}
         contentContainerStyle={styles.list}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+        extraData={displayMessages.length}
       />
 
       <View style={styles.inputBar}>
