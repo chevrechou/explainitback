@@ -167,10 +167,14 @@ export default function SessionScreen() {
             returnKeyType="send"
             multiline
             onKeyPress={(e: any) => {
-              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
-                e.preventDefault?.()
-                sendMessage(input)
-              }
+              try {
+                const key = e?.nativeEvent?.key ?? e?.key
+                const shift = e?.nativeEvent?.shiftKey ?? e?.shiftKey ?? false
+                if (Platform.OS === 'web' && key === 'Enter' && !shift) {
+                  e.preventDefault?.()
+                  sendMessage(input)
+                }
+              } catch { /* ignore event errors */ }
             }}
           />
           <VoiceButton onTranscript={(t) => sendMessage(t)} disabled={waiting} />
