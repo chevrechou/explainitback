@@ -14,13 +14,12 @@ export default function ScorecardScreen() {
   if (!session?.scorecard) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyEmoji}>🤔</Text>
-        <Text style={styles.emptyTitle}>No scorecard this time</Text>
+        <Text style={styles.emptyTitle}>No scorecard</Text>
         <Text style={styles.emptyBody}>
-          Koda couldn't generate a breakdown — this sometimes happens with custom topics or very short sessions.
+          Koda couldn't generate a breakdown — this sometimes happens with very short sessions.
         </Text>
         <Pressable style={styles.cta} onPress={handleTryAnother}>
-          <Text style={styles.ctaText}>Try Another Topic</Text>
+          <Text style={styles.ctaText}>Try another topic</Text>
         </Pressable>
       </View>
     )
@@ -32,46 +31,57 @@ export default function ScorecardScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: color + '33' }]}>
-        <Text style={styles.headerEyebrow}>Session complete</Text>
-        <Text style={styles.headerTopic}>{scorecard.topic}</Text>
-        <Text style={[styles.headerGrade, { color }]}>{grade} — {scorecard.overall_score}/100</Text>
+      <View style={styles.header}>
+        <Text style={styles.eyebrow}>Session complete</Text>
+        <Text style={styles.topic}>{scorecard.topic}</Text>
+        <Text style={[styles.grade, { color }]}>{grade}</Text>
       </View>
 
-      {/* Scorecard body */}
       <ScorecardView assessment={scorecard} />
 
-      {/* CTA */}
       <Pressable style={styles.cta} onPress={handleTryAnother}>
-        <Text style={styles.ctaText}>Try Another Topic</Text>
+        <Text style={styles.ctaText}>Try another topic →</Text>
       </Pressable>
     </ScrollView>
   )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  content: { padding: 20, paddingBottom: 52 },
+  container: { flex: 1, backgroundColor: '#F4F2EC' },
+  content: { padding: 24, paddingBottom: 64 },
 
   header: {
-    marginBottom: 24, paddingBottom: 20,
+    paddingBottom: 20,
     borderBottomWidth: 1,
+    borderBottomColor: '#D5D1C8',
+    marginBottom: 0,
   },
-  headerEyebrow: { fontSize: 12, fontWeight: '600', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 },
-  headerTopic: { fontSize: 28, fontWeight: '800', color: '#0f172a', lineHeight: 34, marginBottom: 4 },
-  headerGrade: { fontSize: 15, fontWeight: '700' },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#88887E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    marginBottom: 8,
+  },
+  topic: { fontSize: 30, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.5, lineHeight: 36, marginBottom: 4 },
+  grade: { fontSize: 14, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
   cta: {
-    marginTop: 32, backgroundColor: '#0f172a',
-    borderRadius: 14, padding: 18, alignItems: 'center',
-    shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 }, elevation: 4,
+    marginTop: 36,
+    backgroundColor: '#1A1A1A',
+    padding: 17,
+    alignItems: 'center',
   },
-  ctaText: { color: '#fff', fontWeight: '800', fontSize: 16, letterSpacing: 0.3 },
+  ctaText: { color: '#FFFFFF', fontWeight: '700', fontSize: 14, letterSpacing: 0.3 },
 
-  empty: { flex: 1, backgroundColor: '#f8fafc', justifyContent: 'center', alignItems: 'center', padding: 32, gap: 12 },
-  emptyEmoji: { fontSize: 48, marginBottom: 4 },
-  emptyTitle: { fontSize: 20, fontWeight: '800', color: '#0f172a', textAlign: 'center' },
-  emptyBody: { fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 21 },
+  empty: {
+    flex: 1,
+    backgroundColor: '#F4F2EC',
+    justifyContent: 'center',
+    padding: 32,
+    gap: 16,
+  },
+  emptyTitle: { fontSize: 22, fontWeight: '800', color: '#1A1A1A' },
+  emptyBody: { fontSize: 14, color: '#88887E', lineHeight: 22 },
 })

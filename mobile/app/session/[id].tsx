@@ -12,50 +12,50 @@ import { VoiceButton } from '../../components/VoiceButton'
 import { Message } from '../../lib/types'
 
 function shortConcept(name: string) {
-  // Strip parenthetical clarifications to keep pills concise
   return name.replace(/\s*\(.*?\)/, '').trim()
 }
 
 function ConceptsPanel({ names }: { names: string[] }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   if (!names.length) return null
   return (
     <View style={cpStyles.wrapper}>
       <Pressable style={cpStyles.header} onPress={() => setOpen((o) => !o)}>
-        <Text style={cpStyles.headerText}>Concepts Koda will quiz you on</Text>
-        <Text style={cpStyles.chevron}>{open ? '▲' : '▼'}</Text>
+        <Text style={cpStyles.headerText}>Concepts being tested</Text>
+        <Text style={cpStyles.chevron}>{open ? '−' : '+'}</Text>
       </Pressable>
       {open && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={cpStyles.scroll} contentContainerStyle={cpStyles.scrollContent}>
+        <View style={cpStyles.list}>
           {names.map((n, i) => (
-            <View key={i} style={cpStyles.pill}>
-              <View style={cpStyles.circle} />
-              <Text style={cpStyles.pillText}>{shortConcept(n)}</Text>
-            </View>
+            <Text key={i} style={cpStyles.item}>
+              <Text style={cpStyles.num}>{String(i + 1).padStart(2, '0')}{'  '}</Text>
+              {shortConcept(n)}
+            </Text>
           ))}
-        </ScrollView>
+        </View>
       )}
-      <View style={cpStyles.tip}>
-        <Text style={cpStyles.tipText}>
-          💡 Be specific • Use examples • Correct Koda if he's wrong • Explain the WHY
-        </Text>
-      </View>
     </View>
   )
 }
 
 const cpStyles = StyleSheet.create({
-  wrapper: { backgroundColor: '#f0fdf4', borderBottomWidth: 1, borderColor: '#bbf7d0' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6 },
-  headerText: { fontSize: 12, fontWeight: '700', color: '#166534', letterSpacing: 0.3, textTransform: 'uppercase' },
-  chevron: { fontSize: 10, color: '#166534' },
-  scroll: { paddingBottom: 8 },
-  scrollContent: { paddingHorizontal: 16, gap: 8, flexDirection: 'row' },
-  pill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#86efac', borderRadius: 99, paddingHorizontal: 10, paddingVertical: 5, gap: 6 },
-  circle: { width: 10, height: 10, borderRadius: 5, borderWidth: 1.5, borderColor: '#86efac' },
-  pillText: { fontSize: 12, color: '#15803d', fontWeight: '500' },
-  tip: { paddingHorizontal: 16, paddingBottom: 10 },
-  tipText: { fontSize: 11, color: '#166534', opacity: 0.7 },
+  wrapper: {
+    backgroundColor: '#EDECEA',
+    borderBottomWidth: 1,
+    borderBottomColor: '#D5D1C8',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  headerText: { fontSize: 11, fontWeight: '700', color: '#88887E', textTransform: 'uppercase', letterSpacing: 0.6 },
+  chevron: { fontSize: 16, color: '#88887E', fontWeight: '400' },
+  list: { paddingHorizontal: 16, paddingBottom: 14, gap: 6 },
+  num: { fontSize: 11, color: '#C8401A', fontWeight: '700' },
+  item: { fontSize: 13, color: '#1A1A1A', lineHeight: 20 },
 })
 
 export default function SessionScreen() {
@@ -63,9 +63,6 @@ export default function SessionScreen() {
   const [input, setInput] = useState('')
   const [waiting, setWaiting] = useState(false)
   const { session, user, addUserMessage, addAssistantMessage, completeSession } = useStore()
-  // Driven entirely by local state — never synced from store after mount.
-  // Each mutation (user send, assistant reply, error) is applied directly here
-  // AND to the store. No useEffect sync so there's no race with optimistic updates.
   const [displayMessages, setDisplayMessages] = useState<Message[]>(() => session?.messages ?? [])
   const scrollRef = useRef<ScrollView>(null)
 
@@ -83,7 +80,6 @@ export default function SessionScreen() {
     setWaiting(true)
 
     const userMsg: Message = { role: 'user', content: trimmed }
-    // Show user bubble immediately via local state (don't wait for store re-render)
     setDisplayMessages((prev) => [...prev, userMsg])
     addUserMessage(userMsg)
 
@@ -108,7 +104,7 @@ export default function SessionScreen() {
       }
     } catch (err: any) {
       const detail = err?.message ?? 'Unknown error'
-      const errMsg: Message = { role: 'assistant', content: `⚠️ ${detail}` }
+      const errMsg: Message = { role: 'assistant', content: `Error: ${detail}` }
       setDisplayMessages(prev => [...prev, errMsg])
       addAssistantMessage(errMsg, session.turnCount + 1)
     } finally {
@@ -119,7 +115,7 @@ export default function SessionScreen() {
   if (!session) {
     return (
       <View style={styles.center}>
-        <Text style={styles.errorText}>Session not found. Go back and start a new one.</Text>
+        <Text style={styles.errorText}>Session not found.</Text>
         <Pressable onPress={() => router.replace('/')}><Text style={styles.link}>Go home</Text></Pressable>
       </View>
     )
@@ -132,8 +128,10 @@ export default function SessionScreen() {
       keyboardVerticalOffset={90}
     >
       <View style={styles.topBar}>
-        <Pressable onPress={() => router.replace('/')}><Text style={styles.back}>←</Text></Pressable>
-        <Text style={styles.topBarTitle} numberOfLines={1}>Teaching Koda: {session.topic}</Text>
+        <Pressable onPress={() => router.replace('/')}>
+          <Text style={styles.back}>←</Text>
+        </Pressable>
+        <Text style={styles.topBarTitle} numberOfLines={1}>{session.topic}</Text>
         <Text style={styles.turnCount}>Turn {session.turnCount}</Text>
       </View>
 
@@ -154,10 +152,10 @@ export default function SessionScreen() {
       <View style={styles.inputBar}>
         <TextInput
           style={styles.textInput}
-          placeholder="Explain it to Koda... (Shift+Enter for newline)"
+          placeholder="Explain it to Koda..."
+          placeholderTextColor="#88887E"
           value={input}
           onChangeText={setInput}
-          onSubmitEditing={() => !Platform.OS || Platform.OS === 'ios' || Platform.OS === 'android' ? sendMessage(input) : undefined}
           returnKeyType="send"
           multiline
           onKeyPress={(e: any) => {
@@ -181,32 +179,52 @@ export default function SessionScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fafaf9' },
+  container: { flex: 1, backgroundColor: '#F4F2EC' },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
-  errorText: { color: '#64748b', textAlign: 'center', marginBottom: 16 },
-  link: { color: '#22c55e', fontWeight: '600' },
+  errorText: { color: '#88887E', textAlign: 'center', marginBottom: 12 },
+  link: { color: '#C8401A', fontWeight: '600' },
   topBar: {
-    flexDirection: 'row', alignItems: 'center', padding: 16,
-    borderBottomWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D5D1C8',
+    backgroundColor: '#F4F2EC',
     gap: 12,
   },
-  back: { fontSize: 20, color: '#0f172a' },
-  topBarTitle: { flex: 1, fontSize: 15, fontWeight: '600', color: '#0f172a' },
-  turnCount: { fontSize: 13, color: '#64748b' },
+  back: { fontSize: 18, color: '#1A1A1A', fontWeight: '400' },
+  topBarTitle: { flex: 1, fontSize: 14, fontWeight: '700', color: '#1A1A1A' },
+  turnCount: { fontSize: 12, color: '#88887E', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.4 },
   messageScroll: { flex: 1 },
-  list: { padding: 16, paddingBottom: 8 },
+  list: { padding: 16, paddingBottom: 12 },
   inputBar: {
-    flexDirection: 'row', alignItems: 'flex-end', gap: 8,
-    padding: 12, borderTopWidth: 1, borderColor: '#e2e8f0', backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#D5D1C8',
+    backgroundColor: '#F4F2EC',
   },
   textInput: {
-    flex: 1, borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, maxHeight: 120, backgroundColor: '#fafaf9',
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#D5D1C8',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    maxHeight: 120,
+    backgroundColor: '#FFFFFF',
+    color: '#1A1A1A',
   },
   sendButton: {
-    width: 44, height: 44, borderRadius: 22, backgroundColor: '#0f172a',
-    alignItems: 'center', justifyContent: 'center',
+    width: 44,
+    height: 44,
+    backgroundColor: '#1A1A1A',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  sendDisabled: { opacity: 0.3 },
-  sendText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  sendDisabled: { opacity: 0.25 },
+  sendText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
 })

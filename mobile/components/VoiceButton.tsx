@@ -170,15 +170,15 @@ const styles = StyleSheet.create({
   wrapper: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center' },
   ring: {
     position: 'absolute',
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#dc2626',
+    width: 56, height: 56,
+    backgroundColor: '#C8401A',
   },
   button: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: '#22c55e', alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: '#16a34a',
+    width: 56, height: 56,
+    backgroundColor: '#1A1A1A', alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: '#1A1A1A',
   },
-  recording: { backgroundColor: '#dc2626', borderColor: '#b91c1c' },
-  faded: { opacity: 0.4 },
-  icon: { fontSize: 22 },
+  recording: { backgroundColor: '#C8401A', borderColor: '#A03010' },
+  faded: { opacity: 0.3 },
+  icon: { fontSize: 20 },
 })

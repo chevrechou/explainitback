@@ -2,9 +2,9 @@ import { View, Text, StyleSheet } from 'react-native'
 import { SubConcept } from '../lib/types'
 
 const CONFIG = {
-  UNDERSTOOD: { label: 'Got it', bg: '#dcfce7', color: '#166534' },
-  SURFACE: { label: 'Surface', bg: '#fef9c3', color: '#854d0e' },
-  NOT_ADDRESSED: { label: 'Missed', bg: '#f1f5f9', color: '#475569' },
+  UNDERSTOOD: { label: 'Done',    color: '#1A6B3C', bg: '#E8F5EE' },
+  SURFACE:    { label: 'Partial', color: '#7A4A10', bg: '#F5EDDF' },
+  NOT_ADDRESSED: { label: 'Missed', color: '#5A5A52', bg: '#EDECEA' },
 } as const
 
 type Props = { concept: SubConcept }
@@ -13,8 +13,8 @@ export function ConceptPill({ concept }: Props) {
   const cfg = CONFIG[concept.status as keyof typeof CONFIG] ?? CONFIG.NOT_ADDRESSED
   return (
     <View style={styles.row}>
-      <View style={[styles.pill, { backgroundColor: cfg.bg }]}>
-        <Text style={[styles.pillText, { color: cfg.color }]}>{cfg.label}</Text>
+      <View style={[styles.tag, { backgroundColor: cfg.bg }]}>
+        <Text style={[styles.tagText, { color: cfg.color }]}>{cfg.label}</Text>
       </View>
       <Text style={styles.name}>{concept.name}</Text>
     </View>
@@ -22,8 +22,8 @@ export function ConceptPill({ concept }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 5 },
-  pill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 99 },
-  pillText: { fontSize: 12, fontWeight: '600' },
-  name: { fontSize: 14, color: '#0f172a', flex: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 4 },
+  tag: { paddingHorizontal: 8, paddingVertical: 3 },
+  tagText: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
+  name: { fontSize: 14, color: '#1A1A1A', flex: 1, lineHeight: 20 },
 })

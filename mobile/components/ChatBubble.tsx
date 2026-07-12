@@ -7,7 +7,7 @@ export function ChatBubble({ message }: Props) {
   const isKoda = message.role === 'assistant'
   return (
     <View style={[styles.row, isKoda ? styles.rowLeft : styles.rowRight]}>
-      {isKoda && <Text style={styles.kodaLabel}>KODA</Text>}
+      {isKoda && <Text style={styles.kodaLabel}>Koda</Text>}
       <View style={[styles.bubble, isKoda ? styles.kodaBubble : styles.userBubble]}>
         <Text style={[styles.text, !isKoda && styles.userText]}>{message.content}</Text>
       </View>
@@ -16,13 +16,25 @@ export function ChatBubble({ message }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: { marginVertical: 4, maxWidth: '80%' },
+  row: { marginVertical: 6, maxWidth: '82%' },
   rowLeft: { alignSelf: 'flex-start', alignItems: 'flex-start' },
   rowRight: { alignSelf: 'flex-end', alignItems: 'flex-end' },
-  kodaLabel: { fontSize: 10, fontWeight: '700', color: '#22c55e', marginBottom: 2, marginLeft: 4 },
-  bubble: { borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10 },
-  kodaBubble: { backgroundColor: '#f0fdf4', borderBottomLeftRadius: 4, borderWidth: 1, borderColor: '#e2e8f0' },
-  userBubble: { backgroundColor: '#0f172a', borderBottomRightRadius: 4 },
-  text: { fontSize: 15, color: '#0f172a', lineHeight: 22 },
-  userText: { color: '#fff' },
+  kodaLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#C8401A',
+    marginBottom: 4,
+    marginLeft: 1,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  bubble: { paddingHorizontal: 14, paddingVertical: 11 },
+  kodaBubble: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#D5D1C8',
+  },
+  userBubble: { backgroundColor: '#1A1A1A' },
+  text: { fontSize: 15, color: '#1A1A1A', lineHeight: 23 },
+  userText: { color: '#FFFFFF' },
 })

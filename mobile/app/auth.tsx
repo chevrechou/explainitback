@@ -35,11 +35,12 @@ export default function AuthScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <Text style={styles.title}>{mode === 'login' ? 'Welcome back' : 'Create account'}</Text>
+      <Text style={styles.title}>{mode === 'login' ? 'Sign in' : 'Create account'}</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Email"
+        placeholderTextColor="#88887E"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -48,6 +49,7 @@ export default function AuthScreen() {
       <TextInput
         style={styles.input}
         placeholder="Password"
+        placeholderTextColor="#88887E"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
@@ -56,12 +58,14 @@ export default function AuthScreen() {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <Pressable style={styles.button} onPress={submit} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>{mode === 'login' ? 'Log in' : 'Sign up'}</Text>}
+        {loading
+          ? <ActivityIndicator color="#FFFFFF" />
+          : <Text style={styles.buttonText}>{mode === 'login' ? 'Sign in →' : 'Create account →'}</Text>}
       </Pressable>
 
       <Pressable onPress={() => setMode(mode === 'login' ? 'signup' : 'login')}>
         <Text style={styles.toggle}>
-          {mode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Log in'}
+          {mode === 'login' ? "No account? Sign up" : 'Have an account? Sign in'}
         </Text>
       </Pressable>
 
@@ -73,19 +77,26 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fafaf9', justifyContent: 'center', padding: 24 },
-  title: { fontSize: 24, fontWeight: '700', color: '#0f172a', marginBottom: 32 },
+  container: { flex: 1, backgroundColor: '#F4F2EC', justifyContent: 'center', padding: 28 },
+  title: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', marginBottom: 32, letterSpacing: -0.3 },
   input: {
-    borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10,
-    padding: 14, marginBottom: 12, fontSize: 16, backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#D5D1C8',
+    padding: 14,
+    marginBottom: 10,
+    fontSize: 16,
+    backgroundColor: '#FFFFFF',
+    color: '#1A1A1A',
   },
-  error: { color: '#dc2626', marginBottom: 12 },
+  error: { color: '#B83030', marginBottom: 12, fontSize: 13 },
   button: {
-    backgroundColor: '#22c55e', borderRadius: 10, padding: 16,
-    alignItems: 'center', marginTop: 8,
+    backgroundColor: '#1A1A1A',
+    padding: 16,
+    alignItems: 'center',
+    marginTop: 8,
   },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  toggle: { color: '#64748b', textAlign: 'center', marginTop: 20 },
-  skip: { marginTop: 16, alignItems: 'center' },
-  skipText: { color: '#64748b', textDecorationLine: 'underline' },
+  buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 15 },
+  toggle: { color: '#88887E', textAlign: 'center', marginTop: 22, fontSize: 14 },
+  skip: { marginTop: 14, alignItems: 'center' },
+  skipText: { color: '#C8401A', fontSize: 14, fontWeight: '600' },
 })

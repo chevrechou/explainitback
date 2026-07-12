@@ -3,9 +3,9 @@ import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Assessment, SubConcept } from '../lib/types'
 
 export function scoreColor(score: number) {
-  if (score >= 70) return '#22c55e'
-  if (score >= 40) return '#f59e0b'
-  return '#ef4444'
+  if (score >= 70) return '#1A6B3C'
+  if (score >= 40) return '#7A4A10'
+  return '#B83030'
 }
 
 export function scoreGrade(score: number) {
@@ -16,39 +16,38 @@ export function scoreGrade(score: number) {
 }
 
 const STATUS = {
-  UNDERSTOOD:    { label: 'Understood',   accent: '#22c55e', light: '#f0fdf4', textColor: '#166534', icon: '✓' },
-  SURFACE:       { label: 'Partial',      accent: '#f59e0b', light: '#fffbeb', textColor: '#92400e', icon: '~' },
-  NOT_ADDRESSED: { label: 'Not covered',  accent: '#ef4444', light: '#fef2f2', textColor: '#991b1b', icon: '✗' },
+  UNDERSTOOD:    { label: 'Understood',   color: '#1A6B3C', bg: '#E8F5EE', bar: '#1A6B3C' },
+  SURFACE:       { label: 'Partial',      color: '#7A4A10', bg: '#F5EDDF', bar: '#C8401A' },
+  NOT_ADDRESSED: { label: 'Missed',       color: '#5A5A52', bg: '#EDECEA', bar: '#AAAAAA' },
 }
 
-function ConceptCard({ concept, index }: { concept: SubConcept; index: number }) {
+function ConceptRow({ concept, index }: { concept: SubConcept; index: number }) {
   const [expanded, setExpanded] = useState(false)
   const cfg = STATUS[concept.status as keyof typeof STATUS] ?? STATUS.NOT_ADDRESSED
 
   return (
-    <View style={[styles.conceptCard, { borderLeftColor: cfg.accent }]}>
-      <Pressable style={styles.conceptRow} onPress={() => setExpanded(e => !e)}>
-        <View style={[styles.iconBadge, { backgroundColor: cfg.light }]}>
-          <Text style={[styles.iconText, { color: cfg.accent }]}>{cfg.icon}</Text>
+    <View style={styles.conceptBlock}>
+      <Pressable style={styles.conceptHeader} onPress={() => setExpanded(e => !e)}>
+        <View style={[styles.statusBar, { backgroundColor: cfg.bar }]} />
+        <Text style={styles.conceptIndex}>{String(index + 1).padStart(2, '0')}</Text>
+        <Text style={styles.conceptName}>{concept.name}</Text>
+        <View style={[styles.statusTag, { backgroundColor: cfg.bg }]}>
+          <Text style={[styles.statusTagText, { color: cfg.color }]}>{cfg.label}</Text>
         </View>
-        <Text style={styles.conceptName} numberOfLines={expanded ? undefined : 2}>{concept.name}</Text>
-        <View style={[styles.statusPill, { backgroundColor: cfg.accent }]}>
-          <Text style={styles.statusPillText}>{cfg.label}</Text>
-        </View>
-        <Text style={styles.chevron}>{expanded ? '▲' : '▼'}</Text>
+        <Text style={styles.toggle}>{expanded ? '−' : '+'}</Text>
       </Pressable>
 
       {expanded && (
         <View style={styles.conceptBody}>
           {concept.evidence ? (
             <View style={styles.evidenceBlock}>
-              <Text style={styles.blockLabel}>What you said</Text>
+              <Text style={styles.bodyLabel}>What you said</Text>
               <Text style={styles.evidenceText}>"{concept.evidence}"</Text>
             </View>
           ) : null}
           {concept.correct_explanation ? (
-            <View style={[styles.explanationBlock, { borderLeftColor: cfg.accent }]}>
-              <Text style={styles.blockLabel}>The full picture</Text>
+            <View style={styles.explanationBlock}>
+              <Text style={styles.bodyLabel}>The full picture</Text>
               <Text style={styles.explanationText}>{concept.correct_explanation}</Text>
             </View>
           ) : null}
@@ -62,132 +61,147 @@ type Props = { assessment: Assessment }
 
 export function ScorecardView({ assessment }: Props) {
   const color = scoreColor(assessment.overall_score)
-  const grade = scoreGrade(assessment.overall_score)
   const understood = assessment.sub_concepts.filter(c => c.status === 'UNDERSTOOD').length
   const partial    = assessment.sub_concepts.filter(c => c.status === 'SURFACE').length
   const missed     = assessment.sub_concepts.filter(c => c.status === 'NOT_ADDRESSED').length
 
   return (
     <View>
-      {/* Score ring */}
-      <View style={styles.heroRow}>
-        <View style={[styles.ring, { borderColor: color }]}>
-          <Text style={[styles.ringScore, { color }]}>{assessment.overall_score}</Text>
-          <Text style={styles.ringMax}>/ 100</Text>
-        </View>
-        <View style={styles.heroRight}>
-          <Text style={[styles.grade, { color }]}>{grade}</Text>
-          <View style={styles.statRow}>
-            <View style={[styles.statBox, { backgroundColor: '#f0fdf4' }]}>
-              <Text style={[styles.statNum, { color: '#22c55e' }]}>{understood}</Text>
-              <Text style={styles.statLbl}>Got it</Text>
+      {/* Score row */}
+      <View style={styles.scoreRow}>
+        <Text style={[styles.scoreNumber, { color }]}>{assessment.overall_score}</Text>
+        <View style={styles.scoreRight}>
+          <View style={styles.statGrid}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statNum, { color: '#1A6B3C' }]}>{understood}</Text>
+              <Text style={styles.statLbl}>Understood</Text>
             </View>
-            <View style={[styles.statBox, { backgroundColor: '#fffbeb' }]}>
-              <Text style={[styles.statNum, { color: '#f59e0b' }]}>{partial}</Text>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNum, { color: '#C8401A' }]}>{partial}</Text>
               <Text style={styles.statLbl}>Partial</Text>
             </View>
-            <View style={[styles.statBox, { backgroundColor: '#fef2f2' }]}>
-              <Text style={[styles.statNum, { color: '#ef4444' }]}>{missed}</Text>
+            <View style={styles.statDivider} />
+            <View style={styles.statItem}>
+              <Text style={[styles.statNum, { color: '#5A5A52' }]}>{missed}</Text>
               <Text style={styles.statLbl}>Missed</Text>
             </View>
           </View>
         </View>
       </View>
 
-      {/* Summary cards */}
-      <View style={[styles.summaryCard, { borderLeftColor: '#22c55e' }]}>
-        <Text style={styles.summaryIcon}>💪</Text>
-        <View style={styles.summaryText}>
+      {/* Summary rows */}
+      <View style={styles.summarySection}>
+        <View style={styles.summaryRow}>
           <Text style={styles.summaryLabel}>Strongest point</Text>
-          <Text style={styles.summaryBody}>{assessment.strongest_point}</Text>
+          <Text style={styles.summaryText}>{assessment.strongest_point}</Text>
         </View>
-      </View>
-
-      <View style={[styles.summaryCard, { borderLeftColor: '#f59e0b' }]}>
-        <Text style={styles.summaryIcon}>🎯</Text>
-        <View style={styles.summaryText}>
+        <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#D5D1C8' }]}>
           <Text style={styles.summaryLabel}>Biggest gap</Text>
-          <Text style={styles.summaryBody}>{assessment.biggest_gap}</Text>
+          <Text style={styles.summaryText}>{assessment.biggest_gap}</Text>
         </View>
-      </View>
-
-      {assessment.misconceptions.length > 0 && (
-        <View style={[styles.summaryCard, { borderLeftColor: '#ef4444' }]}>
-          <Text style={styles.summaryIcon}>⚠️</Text>
-          <View style={styles.summaryText}>
-            <Text style={styles.summaryLabel}>Misconceptions to fix</Text>
+        {assessment.misconceptions.length > 0 && (
+          <View style={[styles.summaryRow, { borderTopWidth: 1, borderTopColor: '#D5D1C8' }]}>
+            <Text style={styles.summaryLabel}>Misconceptions</Text>
             {assessment.misconceptions.map((m, i) => (
-              <Text key={i} style={styles.summaryBody}>• {m}</Text>
+              <Text key={i} style={styles.summaryText}>— {m}</Text>
             ))}
           </View>
-        </View>
-      )}
+        )}
+      </View>
 
       {/* Concept breakdown */}
       <Text style={styles.sectionHeader}>Concept breakdown</Text>
-      <Text style={styles.sectionHint}>Tap any concept for the full explanation</Text>
-      {assessment.sub_concepts.map((c, i) => (
-        <ConceptCard key={i} concept={c} index={i} />
-      ))}
+      <View style={styles.conceptList}>
+        {assessment.sub_concepts.map((c, i) => (
+          <ConceptRow key={i} concept={c} index={i} />
+        ))}
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  // Score hero
-  heroRow: { flexDirection: 'row', alignItems: 'center', gap: 20, marginBottom: 20 },
-  ring: {
-    width: 120, height: 120, borderRadius: 60, borderWidth: 8,
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff',
-    shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 }, elevation: 4,
+  // Score
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 24,
+    paddingVertical: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D5D1C8',
+    marginBottom: 0,
   },
-  ringScore: { fontSize: 42, fontWeight: '800', lineHeight: 46 },
-  ringMax: { fontSize: 12, color: '#94a3b8', marginTop: -2 },
-  heroRight: { flex: 1, gap: 10 },
-  grade: { fontSize: 22, fontWeight: '800' },
-  statRow: { flexDirection: 'row', gap: 8 },
-  statBox: { flex: 1, borderRadius: 10, padding: 8, alignItems: 'center' },
-  statNum: { fontSize: 20, fontWeight: '800' },
-  statLbl: { fontSize: 10, color: '#64748b', fontWeight: '600', marginTop: 1 },
+  scoreNumber: { fontSize: 72, fontWeight: '800', lineHeight: 76, letterSpacing: -2 },
+  scoreRight: { flex: 1 },
+  statGrid: { flexDirection: 'row', alignItems: 'center', gap: 0 },
+  statItem: { flex: 1, alignItems: 'center' },
+  statDivider: { width: 1, height: 36, backgroundColor: '#D5D1C8' },
+  statNum: { fontSize: 24, fontWeight: '800', lineHeight: 28 },
+  statLbl: { fontSize: 10, color: '#88887E', textTransform: 'uppercase', letterSpacing: 0.4, marginTop: 2 },
 
-  // Summary cards
-  summaryCard: {
-    flexDirection: 'row', gap: 12, alignItems: 'flex-start',
-    backgroundColor: '#fff', borderRadius: 12, padding: 14,
-    marginBottom: 10, borderLeftWidth: 4,
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  // Summary
+  summarySection: { borderBottomWidth: 1, borderBottomColor: '#D5D1C8', marginBottom: 24 },
+  summaryRow: { paddingVertical: 16 },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#88887E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 6,
   },
-  summaryIcon: { fontSize: 20, marginTop: 1 },
-  summaryText: { flex: 1 },
-  summaryLabel: { fontSize: 11, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  summaryBody: { fontSize: 14, color: '#0f172a', lineHeight: 21 },
+  summaryText: { fontSize: 14, color: '#1A1A1A', lineHeight: 22 },
 
   // Section header
-  sectionHeader: { fontSize: 16, fontWeight: '800', color: '#0f172a', marginTop: 20, marginBottom: 2 },
-  sectionHint: { fontSize: 12, color: '#94a3b8', marginBottom: 12 },
-
-  // Concept cards
-  conceptCard: {
-    backgroundColor: '#fff', borderRadius: 12, borderLeftWidth: 4,
-    marginBottom: 8, overflow: 'hidden',
-    shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 }, elevation: 2,
+  sectionHeader: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#88887E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 12,
   },
-  conceptRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12 },
-  iconBadge: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  iconText: { fontSize: 13, fontWeight: '800' },
-  conceptName: { flex: 1, fontSize: 13, fontWeight: '600', color: '#0f172a', lineHeight: 18 },
-  statusPill: { borderRadius: 99, paddingHorizontal: 8, paddingVertical: 3, flexShrink: 0 },
-  statusPillText: { fontSize: 10, fontWeight: '700', color: '#fff' },
-  chevron: { fontSize: 9, color: '#94a3b8', flexShrink: 0 },
+
+  // Concept rows
+  conceptList: { gap: 0 },
+  conceptBlock: {
+    borderTopWidth: 1,
+    borderTopColor: '#D5D1C8',
+  },
+  conceptHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    gap: 10,
+  },
+  statusBar: { width: 3, height: 32, flexShrink: 0 },
+  conceptIndex: { fontSize: 11, fontWeight: '700', color: '#88887E', width: 22, flexShrink: 0 },
+  conceptName: { flex: 1, fontSize: 14, fontWeight: '500', color: '#1A1A1A', lineHeight: 20 },
+  statusTag: { paddingHorizontal: 7, paddingVertical: 3, flexShrink: 0 },
+  statusTagText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
+  toggle: { fontSize: 16, color: '#88887E', width: 16, textAlign: 'center', flexShrink: 0 },
 
   // Expanded body
-  conceptBody: { borderTopWidth: 1, borderTopColor: '#f1f5f9' },
-  evidenceBlock: { padding: 12, backgroundColor: '#f8fafc' },
-  explanationBlock: { padding: 12, borderLeftWidth: 3, margin: 12, borderRadius: 4 },
-  blockLabel: { fontSize: 10, fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  evidenceText: { fontSize: 13, color: '#475569', lineHeight: 19, fontStyle: 'italic' },
-  explanationText: { fontSize: 13, color: '#0f172a', lineHeight: 20 },
+  conceptBody: {
+    paddingBottom: 16,
+    paddingLeft: 13,
+    gap: 12,
+  },
+  evidenceBlock: {},
+  explanationBlock: {
+    borderLeftWidth: 2,
+    borderLeftColor: '#D5D1C8',
+    paddingLeft: 12,
+  },
+  bodyLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#88887E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 5,
+  },
+  evidenceText: { fontSize: 13, color: '#5A5A52', lineHeight: 20, fontStyle: 'italic' },
+  explanationText: { fontSize: 13, color: '#1A1A1A', lineHeight: 21 },
 })

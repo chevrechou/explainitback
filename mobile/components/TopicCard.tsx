@@ -1,25 +1,34 @@
-import { Pressable, Text, StyleSheet } from 'react-native'
+import { Pressable, Text, StyleSheet, View } from 'react-native'
 import { Topic } from '../lib/types'
 
-type Props = { topic: Topic; onPress: () => void }
+type Props = { topic: Topic; index?: number; onPress: () => void }
 
-export function TopicCard({ topic, onPress }: Props) {
+export function TopicCard({ topic, index, onPress }: Props) {
+  const num = index !== undefined ? String(index + 1).padStart(2, '0') : null
   return (
-    <Pressable style={styles.card} onPress={onPress}>
-      <Text style={styles.emoji}>{topic.emoji}</Text>
-      <Text style={styles.name}>{topic.name}</Text>
-      <Text style={styles.subject}>{topic.subject}</Text>
+    <Pressable style={styles.row} onPress={onPress}>
+      {num && <Text style={styles.num}>{num}</Text>}
+      <View style={styles.info}>
+        <Text style={styles.name}>{topic.name}</Text>
+        <Text style={styles.subject}>{topic.subject}</Text>
+      </View>
+      <Text style={styles.arrow}>→</Text>
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
-  card: {
-    flex: 1, margin: 6, padding: 16,
-    borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0',
-    backgroundColor: '#fff',
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D5D1C8',
+    gap: 14,
   },
-  emoji: { fontSize: 28, marginBottom: 8 },
-  name: { fontSize: 15, fontWeight: '600', color: '#0f172a', marginBottom: 4 },
-  subject: { fontSize: 12, color: '#64748b' },
+  num: { fontSize: 12, fontWeight: '600', color: '#88887E', width: 24 },
+  info: { flex: 1 },
+  name: { fontSize: 15, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
+  subject: { fontSize: 12, color: '#88887E', textTransform: 'uppercase', letterSpacing: 0.4 },
+  arrow: { fontSize: 16, color: '#88887E' },
 })
