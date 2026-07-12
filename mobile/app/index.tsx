@@ -10,8 +10,16 @@ import { TopicCard } from '../components/TopicCard'
 import { DocumentInput } from '../components/DocumentInput'
 import { Topic } from '../lib/types'
 
+const DEFAULT_TOPICS: Topic[] = [
+  { id: 'photosynthesis', name: 'Photosynthesis', subject: 'Biology', emoji: '🌿', sub_concept_count: 7 },
+  { id: 'pythagorean_theorem', name: 'Pythagorean Theorem', subject: 'Math', emoji: '📐', sub_concept_count: 6 },
+  { id: 'supply_and_demand', name: 'Supply And Demand', subject: 'Economics', emoji: '📈', sub_concept_count: 7 },
+  { id: 'natural_selection', name: 'Natural Selection', subject: 'Biology', emoji: '🦎', sub_concept_count: 7 },
+  { id: 'newton_second_law', name: 'Newton Second Law', subject: 'Physics', emoji: '🍎', sub_concept_count: 7 },
+]
+
 export default function TopicPicker() {
-  const [topics, setTopics] = useState<Topic[]>([])
+  const [topics, setTopics] = useState<Topic[]>(DEFAULT_TOPICS)
   const [docValue, setDocValue] = useState('')
   const [docLabel, setDocLabel] = useState('')
   const [loading, setLoading] = useState(false)
