@@ -62,6 +62,7 @@ export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const [input, setInput] = useState('')
   const [waiting, setWaiting] = useState(false)
+  const [wrappingUp, setWrappingUp] = useState(false)
   const { session, user, addUserMessage, addAssistantMessage, completeSession } = useStore()
   const [displayMessages, setDisplayMessages] = useState<Message[]>(() => session?.messages ?? [])
   const scrollRef = useRef<ScrollView>(null)
@@ -96,6 +97,7 @@ export default function SessionScreen() {
       addAssistantMessage(assistantMsg, res.turn_count)
 
       if (res.is_complete) {
+        setWrappingUp(true)
         if (res.assessment) {
           completeSession(res.assessment, res.turn_count)
         } else {
@@ -146,34 +148,41 @@ export default function SessionScreen() {
         {displayMessages.map((msg, i) => (
           <ChatBubble key={i} message={msg} />
         ))}
-        {waiting && <KodaTyping />}
+        {waiting && !wrappingUp && <KodaTyping />}
+        {wrappingUp && (
+          <View style={styles.scorecardBanner}>
+            <Text style={styles.scorecardBannerText}>Generating your scorecard...</Text>
+          </View>
+        )}
       </ScrollView>
 
-      <View style={styles.inputBar}>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Explain it to Koda..."
-          placeholderTextColor="#88887E"
-          value={input}
-          onChangeText={setInput}
-          returnKeyType="send"
-          multiline
-          onKeyPress={(e: any) => {
-            if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
-              e.preventDefault?.()
-              sendMessage(input)
-            }
-          }}
-        />
-        <VoiceButton onTranscript={(t) => sendMessage(t)} disabled={waiting} />
-        <Pressable
-          style={[styles.sendButton, (!input.trim() || waiting) && styles.sendDisabled]}
-          onPress={() => sendMessage(input)}
-          disabled={!input.trim() || waiting}
-        >
-          <Text style={styles.sendText}>→</Text>
-        </Pressable>
-      </View>
+      {!wrappingUp && (
+        <View style={styles.inputBar}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Explain it to Koda..."
+            placeholderTextColor="#88887E"
+            value={input}
+            onChangeText={setInput}
+            returnKeyType="send"
+            multiline
+            onKeyPress={(e: any) => {
+              if (Platform.OS === 'web' && e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+                e.preventDefault?.()
+                sendMessage(input)
+              }
+            }}
+          />
+          <VoiceButton onTranscript={(t) => sendMessage(t)} disabled={waiting} />
+          <Pressable
+            style={[styles.sendButton, (!input.trim() || waiting) && styles.sendDisabled]}
+            onPress={() => sendMessage(input)}
+            disabled={!input.trim() || waiting}
+          >
+            <Text style={styles.sendText}>→</Text>
+          </Pressable>
+        </View>
+      )}
     </KeyboardAvoidingView>
   )
 }
@@ -227,4 +236,12 @@ const styles = StyleSheet.create({
   },
   sendDisabled: { opacity: 0.25 },
   sendText: { color: '#FFFFFF', fontSize: 18, fontWeight: '700' },
+  scorecardBanner: {
+    marginTop: 12,
+    padding: 14,
+    backgroundColor: '#EDECEA',
+    borderLeftWidth: 3,
+    borderLeftColor: '#C8401A',
+  },
+  scorecardBannerText: { fontSize: 14, color: '#1A1A1A', fontWeight: '600' },
 })

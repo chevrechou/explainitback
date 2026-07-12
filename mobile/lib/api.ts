@@ -6,7 +6,7 @@ async function request<T>(
   path: string,
   options: RequestInit = {},
   token?: string | null,
-  timeoutMs = 45_000,
+  timeoutMs = 90_000,
 ): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
