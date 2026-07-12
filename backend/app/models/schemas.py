@@ -10,18 +10,18 @@ class Message(BaseModel):
 
 class SubConcept(BaseModel):
     name: str
-    status: str  # "NOT_ADDRESSED" | "SURFACE" | "UNDERSTOOD"
-    evidence: str
+    status: str = "NOT_ADDRESSED"  # "NOT_ADDRESSED" | "SURFACE" | "UNDERSTOOD"
+    evidence: str = ""
     correct_explanation: str = ""
 
 
 class Assessment(BaseModel):
     topic: str
-    overall_score: int = Field(ge=0, le=100)
-    sub_concepts: list[SubConcept]
-    biggest_gap: str
-    strongest_point: str
-    misconceptions: list[str]
+    overall_score: int = Field(default=50, ge=0, le=100)
+    sub_concepts: list[SubConcept] = []
+    biggest_gap: str = ""
+    strongest_point: str = ""
+    misconceptions: list[str] = []
 
 
 class SessionStartRequest(BaseModel):

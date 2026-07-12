@@ -1,5 +1,8 @@
+import logging
 import bleach
 from fastapi import APIRouter, HTTPException, UploadFile, File, Request
+
+logger = logging.getLogger(__name__)
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -83,6 +86,16 @@ async def send_message(request: Request, req: SessionMessageRequest):
         is_complete=is_complete,
         assessment=assessment,
     )
+
+
+@router.post("/rate")
+@limiter.limit("20/minute")
+async def rate_session(request: Request, body: dict):
+    stars = body.get("stars")
+    comment = body.get("comment", "")
+    topic = body.get("topic", "")
+    logger.info("Session rating — topic: %s | stars: %s | comment: %.200s", topic, stars, comment)
+    return {"ok": True}
 
 
 @router.post("/transcribe")

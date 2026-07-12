@@ -1,7 +1,76 @@
-import { ScrollView, View, Text, Pressable, StyleSheet } from 'react-native'
+import { useState } from 'react'
+import { ScrollView, View, Text, Pressable, StyleSheet, TextInput } from 'react-native'
 import { router } from 'expo-router'
 import { useStore } from '../../lib/store'
 import { ScorecardView, scoreColor, scoreGrade } from '../../components/ScorecardView'
+import { api } from '../../lib/api'
+
+function RatingBlock({ topic }: { topic: string }) {
+  const [selected, setSelected] = useState<number | null>(null)
+  const [comment, setComment] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const user = useStore((s) => s.user)
+
+  async function submit() {
+    if (selected === null) return
+    setSubmitting(true)
+    try {
+      await api.rateSession(selected, topic, comment, user?.accessToken)
+      setSubmitted(true)
+    } catch {
+      setSubmitted(true) // fail silently — rating is best-effort
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <View style={styles.ratingDone}>
+        <Text style={styles.ratingDoneText}>Thanks — your feedback helps Koda improve.</Text>
+      </View>
+    )
+  }
+
+  return (
+    <View style={styles.ratingBlock}>
+      <Text style={styles.ratingLabel}>Rate this session</Text>
+      <Text style={styles.ratingHint}>How well did Koda challenge your understanding?</Text>
+
+      <View style={styles.stars}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <Pressable key={n} onPress={() => setSelected(n)} style={styles.starBtn}>
+            <Text style={[styles.starChar, selected !== null && n <= selected && styles.starActive]}>
+              {n <= (selected ?? 0) ? '★' : '☆'}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {selected !== null && (
+        <>
+          <TextInput
+            style={styles.commentInput}
+            placeholder="What could Koda do better? (optional)"
+            placeholderTextColor="#88887E"
+            value={comment}
+            onChangeText={setComment}
+            multiline
+            numberOfLines={3}
+          />
+          <Pressable
+            style={[styles.submitBtn, submitting && styles.submitDisabled]}
+            onPress={submit}
+            disabled={submitting}
+          >
+            <Text style={styles.submitText}>{submitting ? 'Sending...' : 'Submit feedback →'}</Text>
+          </Pressable>
+        </>
+      )}
+    </View>
+  )
+}
 
 export default function ScorecardScreen() {
   const { session, clearSession } = useStore()
@@ -39,6 +108,9 @@ export default function ScorecardScreen() {
 
       <ScorecardView assessment={scorecard} />
 
+      <View style={styles.divider} />
+      <RatingBlock topic={scorecard.topic} />
+
       <Pressable style={styles.cta} onPress={handleTryAnother}>
         <Text style={styles.ctaText}>Try another topic →</Text>
       </Pressable>
@@ -67,8 +139,41 @@ const styles = StyleSheet.create({
   topic: { fontSize: 30, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.5, lineHeight: 36, marginBottom: 4 },
   grade: { fontSize: 14, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
 
+  divider: { height: 1, backgroundColor: '#D5D1C8', marginTop: 32, marginBottom: 28 },
+
+  // Rating
+  ratingBlock: { marginBottom: 32 },
+  ratingLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#88887E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.7,
+    marginBottom: 6,
+  },
+  ratingHint: { fontSize: 14, color: '#1A1A1A', marginBottom: 16 },
+  stars: { flexDirection: 'row', gap: 4, marginBottom: 16 },
+  starBtn: { padding: 4 },
+  starChar: { fontSize: 32, color: '#D5D1C8' },
+  starActive: { color: '#C8401A' },
+  commentInput: {
+    borderWidth: 1,
+    borderColor: '#D5D1C8',
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    fontSize: 14,
+    color: '#1A1A1A',
+    minHeight: 80,
+    textAlignVertical: 'top',
+    marginBottom: 10,
+  },
+  submitBtn: { backgroundColor: '#1A1A1A', padding: 14, alignItems: 'center' },
+  submitDisabled: { opacity: 0.4 },
+  submitText: { color: '#FFFFFF', fontWeight: '700', fontSize: 13, letterSpacing: 0.3 },
+  ratingDone: { paddingVertical: 20, marginBottom: 32 },
+  ratingDoneText: { fontSize: 14, color: '#88887E', fontStyle: 'italic' },
+
   cta: {
-    marginTop: 36,
     backgroundColor: '#1A1A1A',
     padding: 17,
     alignItems: 'center',

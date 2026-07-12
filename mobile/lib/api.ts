@@ -88,6 +88,12 @@ export const api = {
       token,
     ),
 
+  rateSession: (stars: number, topic: string, comment?: string, token?: string | null) =>
+    request<{ ok: boolean }>('/sessions/rate', {
+      method: 'POST',
+      body: JSON.stringify({ stars, topic, comment: comment ?? '' }),
+    }, token),
+
   transcribeAudio: async (audioBlob: Blob, filename: string, token?: string | null) => {
     const formData = new FormData()
     formData.append('audio', audioBlob, filename)
