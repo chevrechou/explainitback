@@ -9,6 +9,9 @@ type Props = { onTranscript: (text: string) => void; disabled?: boolean }
 export function VoiceButton({ onTranscript, disabled }: Props) {
   const [state, setState] = useState<'idle' | 'recording' | 'transcribing'>('idle')
   const recordingRef = useRef<Audio.Recording | null>(null)
+  // Web Speech API ref so we can stop it on demand
+  const recognitionRef = useRef<any>(null)
+  const transcriptRef = useRef('')
   const user = useStore((s) => s.user)
   const ring1 = useRef(new Animated.Value(0)).current
   const ring2 = useRef(new Animated.Value(0)).current
@@ -69,8 +72,14 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     }
   }
 
-  // ── Web (Chrome / Edge) ───────────────────────────────────────────────
+  // ── Web (Chrome / Edge) — click to start, click again to stop ────────
   function handleWebVoice() {
+    if (state === 'recording') {
+      // Stop: onend will fire and deliver the accumulated transcript
+      recognitionRef.current?.stop()
+      return
+    }
+
     // @ts-ignore — Web Speech API not in TS lib
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition
     if (!SR) {
@@ -78,20 +87,32 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
       return
     }
     const recognition = new SR()
-    recognition.continuous = false
+    recognition.continuous = true   // keep going through pauses
     recognition.interimResults = false
+    transcriptRef.current = ''
+    recognitionRef.current = recognition
+
     recognition.onstart = () => setState('recording')
-    recognition.onend = () => setState('idle')
-    recognition.onerror = () => setState('idle')
-    recognition.onresult = (e: any) => onTranscript(e.results[0][0].transcript)
+    recognition.onend = () => {
+      setState('idle')
+      const final = transcriptRef.current.trim()
+      if (final) onTranscript(final)
+      transcriptRef.current = ''
+    }
+    recognition.onerror = () => { setState('idle'); transcriptRef.current = '' }
+    recognition.onresult = (e: any) => {
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) transcriptRef.current += e.results[i][0].transcript + ' '
+      }
+    }
     recognition.start()
   }
 
   function handlePressIn() {
-    if (disabled || state !== 'idle') return
+    if (disabled) return
     if (Platform.OS === 'web') {
-      handleWebVoice()
-    } else {
+      handleWebVoice()   // toggle: start or stop
+    } else if (state === 'idle') {
       startNativeRecording()
     }
   }
