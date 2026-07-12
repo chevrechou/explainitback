@@ -8,10 +8,9 @@ type Props = { onTranscript: (text: string) => void; disabled?: boolean }
 
 export function VoiceButton({ onTranscript, disabled }: Props) {
   const [state, setState] = useState<'idle' | 'recording' | 'transcribing'>('idle')
-  const recordingRef = useRef<Audio.Recording | null>(null)
-  const recognitionRef = useRef<any>(null)
-  const transcriptRef = useRef('')
-  const manualStopRef = useRef(false) // true = user clicked stop; false = browser auto-stopped
+  const recordingRef = useRef<Audio.Recording | null>(null)     // native
+  const mediaRecorderRef = useRef<any>(null)                    // web
+  const chunksRef = useRef<BlobPart[]>([])
   const onTranscriptRef = useRef(onTranscript)
   useEffect(() => { onTranscriptRef.current = onTranscript }, [onTranscript])
   const user = useStore((s) => s.user)
@@ -74,59 +73,42 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     }
   }
 
-  // ── Web (Chrome / Edge) — click to start, click again to stop ────────
+  // ── Web — MediaRecorder → Groq Whisper (no browser timeout) ─────────
   function handleWebVoice() {
     if (state === 'recording') {
-      // Deliver transcript immediately — don't wait for onend (avoids race
-      // condition where recognition is already stopped in the auto-restart window)
-      manualStopRef.current = true
-      try { recognitionRef.current?.stop() } catch {}
-      setState('idle')
-      const final = transcriptRef.current.trim()
-      if (final) onTranscriptRef.current(final)
-      transcriptRef.current = ''
+      mediaRecorderRef.current?.stop()
       return
     }
 
-    // @ts-ignore — Web Speech API not in TS lib
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition
-    if (!SR) {
-      alert('Voice input is not supported in this browser. Use Chrome or Edge.')
-      return
-    }
-    const recognition = new SR()
-    recognition.continuous = true
-    recognition.interimResults = false
-    transcriptRef.current = ''
-    manualStopRef.current = false
-    recognitionRef.current = recognition
+    // @ts-ignore — navigator not typed for RN
+    navigator.mediaDevices?.getUserMedia({ audio: true })
+      .then((stream: MediaStream) => {
+        chunksRef.current = []
+        // @ts-ignore
+        const mr = new MediaRecorder(stream)
+        mediaRecorderRef.current = mr
 
-    recognition.onstart = () => setState('recording')
-
-    recognition.onend = () => {
-      if (manualStopRef.current) return // already handled by manual stop
-      // Browser auto-stopped (silence) — restart silently
-      setTimeout(() => {
-        if (!manualStopRef.current) {
-          try { recognition.start() } catch {}
+        mr.ondataavailable = (e: any) => {
+          if (e.data?.size > 0) chunksRef.current.push(e.data)
         }
-      }, 100)
-    }
 
-    recognition.onerror = (e: any) => {
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-        manualStopRef.current = true
-        setState('idle')
-        transcriptRef.current = ''
-      }
-    }
+        mr.onstop = async () => {
+          stream.getTracks().forEach((t: any) => t.stop())
+          setState('transcribing')
+          try {
+            // @ts-ignore
+            const blob = new Blob(chunksRef.current, { type: mr.mimeType || 'audio/webm' })
+            const ext = (mr.mimeType || '').includes('ogg') ? 'ogg' : 'webm'
+            const { text } = await api.transcribeAudio(blob, `audio.${ext}`, user?.accessToken)
+            if (text?.trim()) onTranscriptRef.current(text.trim())
+          } catch {}
+          setState('idle')
+        }
 
-    recognition.onresult = (e: any) => {
-      for (let i = e.resultIndex; i < e.results.length; i++) {
-        if (e.results[i].isFinal) transcriptRef.current += e.results[i][0].transcript + ' '
-      }
-    }
-    recognition.start()
+        mr.start()
+        setState('recording')
+      })
+      .catch(() => alert('Microphone access denied. Allow it in your browser settings.'))
   }
 
   function handlePressIn() {
