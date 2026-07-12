@@ -11,7 +11,7 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
   const recordingRef = useRef<Audio.Recording | null>(null)
   const recognitionRef = useRef<any>(null)
   const transcriptRef = useRef('')
-  // Always call the latest onTranscript even if the prop changed after recording started
+  const manualStopRef = useRef(false) // true = user clicked stop; false = browser auto-stopped
   const onTranscriptRef = useRef(onTranscript)
   useEffect(() => { onTranscriptRef.current = onTranscript }, [onTranscript])
   const user = useStore((s) => s.user)
@@ -77,7 +77,8 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
   // ── Web (Chrome / Edge) — click to start, click again to stop ────────
   function handleWebVoice() {
     if (state === 'recording') {
-      // Stop: onend will fire and deliver the accumulated transcript
+      // User-initiated stop
+      manualStopRef.current = true
       recognitionRef.current?.stop()
       return
     }
@@ -89,19 +90,37 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
       return
     }
     const recognition = new SR()
-    recognition.continuous = true   // keep going through pauses
+    recognition.continuous = true
     recognition.interimResults = false
     transcriptRef.current = ''
+    manualStopRef.current = false
     recognitionRef.current = recognition
 
     recognition.onstart = () => setState('recording')
+
     recognition.onend = () => {
+      if (!manualStopRef.current) {
+        // Browser auto-stopped (silence timeout) — restart silently to keep recording
+        setTimeout(() => { try { recognition.start() } catch {} }, 100)
+        return
+      }
+      // User clicked stop — deliver transcript
       setState('idle')
       const final = transcriptRef.current.trim()
       if (final) onTranscriptRef.current(final)
       transcriptRef.current = ''
     }
-    recognition.onerror = () => { setState('idle'); transcriptRef.current = '' }
+
+    recognition.onerror = (e: any) => {
+      // Permission errors are unrecoverable — abort
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        manualStopRef.current = true
+        setState('idle')
+        transcriptRef.current = ''
+      }
+      // no-speech / aborted / network errors: onend will restart automatically
+    }
+
     recognition.onresult = (e: any) => {
       for (let i = e.resultIndex; i < e.results.length; i++) {
         if (e.results[i].isFinal) transcriptRef.current += e.results[i][0].transcript + ' '
