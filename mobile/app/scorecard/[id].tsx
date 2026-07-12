@@ -10,9 +10,12 @@ export default function ScorecardScreen() {
   if (!session?.scorecard) {
     return (
       <View style={styles.center}>
-        <Text style={styles.muted}>No scorecard available.</Text>
-        <Pressable onPress={() => router.replace('/')}>
-          <Text style={styles.link}>Go home</Text>
+        <Text style={styles.heading}>Session complete!</Text>
+        <Text style={styles.muted}>
+          Koda couldn't generate a scorecard this time. This sometimes happens with custom topics.
+        </Text>
+        <Pressable style={styles.button} onPress={() => { clearSession(); router.replace('/') }}>
+          <Text style={styles.buttonText}>Try Another Topic</Text>
         </Pressable>
       </View>
     )
