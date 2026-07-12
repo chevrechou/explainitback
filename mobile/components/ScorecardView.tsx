@@ -2,6 +2,58 @@ import { useState } from 'react'
 import { View, Text, Pressable, StyleSheet } from 'react-native'
 import { Assessment, SubConcept } from '../lib/types'
 
+const DIAGRAM_CHARS = /[│─┌┐└┘├┤┬┴┼╔╗╚╝║═▲▼◄►|+\-\/\\^]/
+
+function isDiagramLine(line: string) {
+  const matches = (line.match(new RegExp(DIAGRAM_CHARS.source, 'g')) ?? []).length
+  return matches >= 3
+}
+
+function ExplanationText({ text }: { text: string }) {
+  const lines = text.split('\n')
+  const segments: { type: 'text' | 'diagram'; content: string }[] = []
+  let buf: string[] = []
+  let mode: 'text' | 'diagram' = 'text'
+
+  for (const line of lines) {
+    const lineMode = isDiagramLine(line) ? 'diagram' : 'text'
+    if (lineMode !== mode && buf.length) {
+      segments.push({ type: mode, content: buf.join('\n') })
+      buf = []
+    }
+    mode = lineMode
+    buf.push(line)
+  }
+  if (buf.length) segments.push({ type: mode, content: buf.join('\n') })
+
+  return (
+    <View>
+      {segments.map((seg, i) =>
+        seg.type === 'diagram' ? (
+          <View key={i} style={diagramStyles.block}>
+            <Text style={diagramStyles.text}>{seg.content}</Text>
+          </View>
+        ) : (
+          <Text key={i} style={explanationTextStyle}>{seg.content}</Text>
+        )
+      )}
+    </View>
+  )
+}
+
+const diagramStyles = StyleSheet.create({
+  block: {
+    backgroundColor: '#EDECEA',
+    borderLeftWidth: 2,
+    borderLeftColor: '#D5D1C8',
+    padding: 10,
+    marginVertical: 6,
+  },
+  text: { fontFamily: 'monospace', fontSize: 12, color: '#1A1A1A', lineHeight: 18 },
+})
+
+const explanationTextStyle = { fontSize: 13, color: '#1A1A1A', lineHeight: 21 } as const
+
 export function scoreColor(score: number) {
   if (score >= 70) return '#1A6B3C'
   if (score >= 40) return '#7A4A10'
@@ -48,7 +100,7 @@ function ConceptRow({ concept, index }: { concept: SubConcept; index: number }) 
           {concept.correct_explanation ? (
             <View style={styles.explanationBlock}>
               <Text style={styles.bodyLabel}>The full picture</Text>
-              <Text style={styles.explanationText}>{concept.correct_explanation}</Text>
+              <ExplanationText text={concept.correct_explanation} />
             </View>
           ) : null}
         </View>
@@ -203,5 +255,4 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   evidenceText: { fontSize: 13, color: '#5A5A52', lineHeight: 20, fontStyle: 'italic' },
-  explanationText: { fontSize: 13, color: '#1A1A1A', lineHeight: 21 },
 })
