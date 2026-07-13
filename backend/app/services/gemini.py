@@ -1,5 +1,10 @@
+import asyncio
+import logging
+
 import httpx
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 _GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/"
@@ -20,11 +25,15 @@ async def gemini_chat(system_prompt: str, messages: list[dict]) -> str:
         "contents": contents,
         "generationConfig": {"maxOutputTokens": settings.ai_max_tokens},
     }
+    url = f"{_GEMINI_URL}?key={settings.gemini_api_key}"
     async with httpx.AsyncClient(timeout=45.0) as client:
-        resp = await client.post(
-            f"{_GEMINI_URL}?key={settings.gemini_api_key}", json=payload
-        )
-        resp.raise_for_status()
+        resp = await client.post(url, json=payload)
+        if resp.status_code == 429:
+            logger.warning("Gemini chat 429 — retrying after 12s")
+            await asyncio.sleep(12)
+            resp = await client.post(url, json=payload)
+        if not resp.is_success:
+            raise ValueError(f"Gemini HTTP {resp.status_code}")
     data = resp.json()
     candidates = data.get("candidates", [])
     if not candidates:
