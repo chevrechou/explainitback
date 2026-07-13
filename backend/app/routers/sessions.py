@@ -2,10 +2,6 @@ import logging
 import re
 import bleach
 from fastapi import APIRouter, HTTPException, UploadFile, File, Request
-
-_TOPIC_TAG_RE = re.compile(r"<topic>(.*?)</topic>", re.DOTALL | re.IGNORECASE)
-
-logger = logging.getLogger(__name__)
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -15,9 +11,16 @@ from app.models.schemas import (
 )
 from app.services.ai import chat
 from app.services.scoring import extract_assessment
+from app.services.evaluator import run_evaluation
 from app.services.scraper import fetch_url_text
 from app.prompts.socratic import build_system_prompt, TOPIC_SUBCONCEPTS
 from app.config import settings
+
+logger = logging.getLogger(__name__)
+
+_TOPIC_TAG_RE  = re.compile(r"<topic>(.*?)</topic>", re.DOTALL | re.IGNORECASE)
+_DONE_TAG_RE   = re.compile(r"<done\s*/?>", re.IGNORECASE)
+_DONE_PHRASE   = "got it, that makes sense now. thanks"
 
 router = APIRouter()
 limiter = Limiter(key_func=get_remote_address)
@@ -76,16 +79,50 @@ async def send_message(request: Request, req: SessionMessageRequest):
 
     system_prompt = build_system_prompt(req.topic, document_text)
     raw = await chat(system_prompt, history, topic=req.topic)
-    visible, assessment = extract_assessment(raw)
 
-    is_complete = assessment is not None or turn_count >= settings.max_turns_per_session
+    # Strip any leftover <assessment> blocks (old behaviour) and <done/> tag
+    visible, legacy_assessment = extract_assessment(raw)
+    done_signal = (
+        bool(_DONE_TAG_RE.search(visible))
+        or _DONE_PHRASE in visible.lower()
+    )
+    visible = _DONE_TAG_RE.sub("", visible).strip()
 
+    is_complete = done_signal or legacy_assessment is not None or turn_count >= settings.max_turns_per_session
+
+    # Do NOT run evaluation here — return immediately and let the client call
+    # /sessions/evaluate separately to avoid combined timeout on Render free tier.
     return SessionMessageResponse(
         response=visible,
         turn_count=turn_count,
         is_complete=is_complete,
-        assessment=assessment,
+        assessment=legacy_assessment,  # only set if model accidentally output JSON
     )
+
+
+@router.post("/evaluate")
+@limiter.limit("10/minute")
+async def evaluate_session(request: Request, req: SessionMessageRequest):
+    """Run the dedicated evaluator on a completed conversation. Called separately
+    from /message so the HTTP response isn't blocked by the evaluation time."""
+    document_text: str | None = None
+    if req.document_text:
+        document_text = req.document_text[: settings.document_max_tokens * 4]
+
+    normalized = req.topic.lower().replace(" ", "_")
+    sub_concepts = TOPIC_SUBCONCEPTS.get(normalized, [])
+
+    history = [{"role": m.role, "content": m.content} for m in req.messages]
+    if req.user_message:
+        history.append({"role": "user", "content": req.user_message})
+
+    assessment = await run_evaluation(
+        topic=req.topic,
+        sub_concepts=sub_concepts,
+        conversation=history,
+        document_text=document_text,
+    )
+    return {"assessment": assessment}
 
 
 @router.post("/rate")

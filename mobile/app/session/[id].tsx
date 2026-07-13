@@ -101,7 +101,23 @@ export default function SessionScreen() {
         if (res.assessment) {
           completeSession(res.assessment, res.turn_count)
         } else {
-          setTimeout(() => router.replace(`/scorecard/${id}`), 1500)
+          // Evaluation runs separately to avoid combined timeout on Render
+          const allMessages = [...session.messages, userMsg, assistantMsg]
+          try {
+            const evalRes = await api.evaluate(
+              session.topic,
+              allMessages,
+              session.documentText,
+              user?.accessToken,
+            )
+            if (evalRes.assessment) {
+              completeSession(evalRes.assessment, res.turn_count)
+            } else {
+              router.replace(`/scorecard/${id}`)
+            }
+          } catch {
+            router.replace(`/scorecard/${id}`)
+          }
         }
       }
     } catch (err: any) {

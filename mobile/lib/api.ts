@@ -88,6 +88,27 @@ export const api = {
       token,
     ),
 
+  evaluate: (
+    topic: string,
+    messages: Message[],
+    documentText?: string | null,
+    token?: string | null,
+  ) =>
+    request<{ assessment: Assessment | null }>(
+      '/sessions/evaluate',
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          topic,
+          messages,
+          user_message: '',
+          document_text: documentText ?? undefined,
+        }),
+      },
+      token,
+      120_000, // 2 min timeout for evaluation
+    ),
+
   rateSession: (stars: number, topic: string, comment?: string, token?: string | null) =>
     request<{ ok: boolean }>('/sessions/rate', {
       method: 'POST',
