@@ -73,8 +73,8 @@ async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = 
     async with httpx.AsyncClient(timeout=60.0) as client:
         resp = await client.post(url, json=payload)
         if resp.status_code == 429 and retry_on_429:
-            logger.warning("Gemini eval 429 rate limit on %s — retrying after 12s", model)
-            await asyncio.sleep(12)
+            logger.warning("Gemini eval 429 rate limit on %s — retrying after 25s", model)
+            await asyncio.sleep(25)
             resp = await client.post(url, json=payload)
         if not resp.is_success:
             raise ValueError(f"Gemini eval HTTP {resp.status_code} on model {model}")
