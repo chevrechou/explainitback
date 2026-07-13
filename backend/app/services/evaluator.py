@@ -11,8 +11,8 @@ from app.prompts.evaluator import EVALUATOR_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-_EVAL_MODEL = "gemini-2.5-flash-preview-05-20"
-_EVAL_FALLBACK_MODEL = "gemini-2.0-flash"
+_EVAL_MODEL = "gemini-2.0-flash"
+_EVAL_FALLBACK_MODEL = "gemini-1.5-flash"
 _GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 # Strip the sanitization wrapper added by sanitize_for_ai()
@@ -65,7 +65,7 @@ async def _call_gemini_eval(user_message: str, model: str) -> str:
         "systemInstruction": {"parts": [{"text": EVALUATOR_SYSTEM_PROMPT}]},
         "contents": [{"role": "user", "parts": [{"text": user_message}]}],
         "generationConfig": {
-            "maxOutputTokens": 6000,  # room for scratchpad + JSON
+            "maxOutputTokens": 4096,
             "temperature": 0.1,
         },
     }
@@ -101,7 +101,7 @@ def _parse_assessment(raw: str, topic: str) -> Optional[Assessment]:
             data["topic"] = topic
         return Assessment(**data)
     except Exception as e:
-        logger.error("Evaluator parse error: %s | raw: %.500s", e, raw[:500])
+        logger.error("Evaluator parse error: %s | fence_found: %s | raw: %.800s", e, bool(fence_match), raw[:800])
         return None
 
 
