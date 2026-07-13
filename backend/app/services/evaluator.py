@@ -68,6 +68,7 @@ async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = 
         "generationConfig": {
             "maxOutputTokens": 4096,
             "temperature": 0.1,
+            "responseMimeType": "application/json",
         },
     }
     async with httpx.AsyncClient(timeout=60.0) as client:
@@ -78,11 +79,18 @@ async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = 
             resp = await client.post(url, json=payload)
         if not resp.is_success:
             raise ValueError(f"Gemini eval HTTP {resp.status_code} on model {model}")
-    data = resp.json()
+        data = resp.json()
     candidates = data.get("candidates", [])
     if not candidates:
-        raise ValueError(f"Evaluator: no candidates from {model}: {data.get('promptFeedback')}")
-    return candidates[0]["content"]["parts"][0]["text"]
+        logger.error("Evaluator: no candidates from %s. promptFeedback: %s | full response keys: %s",
+                     model, data.get("promptFeedback"), list(data.keys()))
+        raise ValueError(f"Evaluator: no candidates from {model}")
+    try:
+        return candidates[0]["content"]["parts"][0]["text"]
+    except (KeyError, IndexError) as e:
+        logger.error("Evaluator candidates structure error on %s: %s | candidates: %.500s",
+                     model, e, str(candidates)[:500])
+        raise ValueError(f"Unexpected candidates structure: {e}")
 
 
 def _parse_assessment(raw: str, topic: str) -> Optional[Assessment]:
@@ -128,5 +136,8 @@ async def run_evaluation(
             logger.error("Evaluator fallback also failed: %s", e2)
             return None
 
-    logger.info("Evaluator raw response (%d chars): %.300s", len(raw), raw[:300])
-    return _parse_assessment(raw, topic)
+    logger.info("Evaluator raw response (%d chars): %.600s", len(raw), raw[:600])
+    result = _parse_assessment(raw, topic)
+    if result is None:
+        logger.error("Evaluator _parse_assessment returned None. Full raw: %.1000s", raw[:1000])
+    return result
