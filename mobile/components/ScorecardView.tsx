@@ -99,7 +99,7 @@ function ConceptRow({ concept, index }: { concept: SubConcept; index: number }) 
           ) : null}
           {concept.correct_explanation ? (
             <View style={styles.explanationBlock}>
-              <Text style={styles.bodyLabel}>The full picture</Text>
+              <Text style={styles.bodyLabel}>A good answer looks like</Text>
               <ExplanationText text={concept.correct_explanation} />
             </View>
           ) : null}

@@ -50,7 +50,7 @@ Then IMMEDIATELY output the assessment block. No preamble, no announcement, no m
       "name": "sub-concept name",
       "status": "NOT_ADDRESSED | SURFACE | UNDERSTOOD",
       "evidence": "quote or paraphrase of what the user said (empty string if NOT_ADDRESSED)",
-      "correct_explanation": "2-4 sentences: mechanism (WHY it works), concrete example, key formula. Use Unicode math: ² ³ √ × ÷ ≈. Where a diagram or graph would help understanding, include a simple ASCII diagram inline (e.g. supply/demand curves, force diagrams, cycle diagrams) using box-drawing chars or ASCII art."
+      "correct_explanation": "Write a model answer — the ideal explanation a student should be able to give. 3-5 sentences covering: the core mechanism (WHY it works, not just what), a concrete real-world example, any key formula or relationship. Write it as if you're showing the student exactly what a thorough, correct explanation sounds like in plain language. Use Unicode math where relevant: ² ³ √ × ÷ ≈. Include a simple ASCII diagram where it genuinely helps (e.g. supply/demand curves, force diagrams, cycle flowcharts)."
     }}
   ],
   "overall_score": 0-100 (score understanding of the mechanism, not precision of language; solid grasp of most concepts = 70-85; right direction but missing key mechanisms = 50-65; mostly surface-level or wrong = 30-50; reserve below-30 for genuine confusion or significant misconceptions),
