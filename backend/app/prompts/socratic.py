@@ -39,28 +39,11 @@ Do NOT correct imprecise language — only correct wrong facts.
 If the user says ANYTHING suggesting they are done — "I think I'm done", "that's all I know", "thanks", "okay I get it now", "I'm done learning" — IMMEDIATELY wrap up with "Got it, thanks!" and output the assessment. Do NOT ask another question. Do NOT wait for turn 6.
 
 ## Wrap-up
-When wrapping up (at any turn), say:
+When wrapping up (at any turn), say exactly:
 "Got it, that makes sense now. Thanks!"
-Then IMMEDIATELY output the assessment block. No preamble, no announcement, no markdown fences:
-
-<assessment>
-{{
-  "topic": "{topic}",
-  "sub_concepts": [
-    {{
-      "name": "sub-concept name",
-      "status": "NOT_ADDRESSED | SURFACE | UNDERSTOOD",
-      "evidence": "direct quote or close paraphrase of what the student actually explained — not claims like 'I know this', only real explanations. Empty string if NOT_ADDRESSED.",
-      "correct_explanation": "Write a model answer — the ideal explanation a student should be able to give. 3-5 sentences covering: the core mechanism (WHY it works, not just what), a concrete real-world example, any key formula or relationship. Write it as if you're showing the student exactly what a thorough, correct explanation sounds like in plain language. Use Unicode math where relevant: ² ³ √ × ÷ ≈. Include a simple ASCII diagram where it genuinely helps (e.g. supply/demand curves, force diagrams, cycle flowcharts)."
-    }}
-  ],
-  "overall_score": 0-100 (score understanding of the mechanism, not precision of language; solid grasp of most concepts = 70-85; right direction but missing key mechanisms = 50-65; mostly surface-level or wrong = 30-50; reserve below-30 for genuine confusion or significant misconceptions),
-  "biggest_gap": "most important gap with a one-sentence hint at the right answer",
-  "strongest_point": "what they explained best and why it showed genuine understanding",
-  "misconceptions": ["They said X, but actually Y — one per item"]
-}}
-</assessment>
-"""
+Then output ONLY this tag on its own line, nothing else:
+<done/>
+Do NOT output any JSON, scores, or assessment. A separate evaluator handles that."""
 
 TOPIC_SUBCONCEPTS: dict[str, list[str]] = {
     "photosynthesis": [

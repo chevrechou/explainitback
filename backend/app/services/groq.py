@@ -12,7 +12,7 @@ async def groq_chat(system_prompt: str, messages: list[dict]) -> str:
         "messages": msgs,
         "max_tokens": settings.ai_max_tokens,
     }
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.post(
             _GROQ_CHAT_URL,
             json=payload,
