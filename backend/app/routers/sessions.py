@@ -125,6 +125,22 @@ async def evaluate_session(request: Request, req: SessionMessageRequest):
     return {"assessment": assessment}
 
 
+@router.post("/eval-debug")
+@limiter.limit("5/minute")
+async def eval_debug(request: Request, req: SessionMessageRequest):
+    """Temporary diagnostic endpoint — returns raw Gemini response to debug null assessments."""
+    from app.services.evaluator import _build_eval_user_message, _call_gemini_eval, _EVAL_MODEL, _EVAL_FALLBACK_MODEL
+    normalized = req.topic.lower().replace(" ", "_")
+    sub_concepts = TOPIC_SUBCONCEPTS.get(normalized, [])
+    history = [{"role": m.role, "content": m.content} for m in req.messages]
+    user_message = _build_eval_user_message(req.topic, sub_concepts, history, None)
+    try:
+        raw = await _call_gemini_eval(user_message, _EVAL_MODEL)
+        return {"model": _EVAL_MODEL, "raw": raw[:3000], "len": len(raw)}
+    except Exception as e:
+        return {"model": _EVAL_MODEL, "error": str(e)}
+
+
 @router.post("/rate")
 @limiter.limit("20/minute")
 async def rate_session(request: Request, body: dict):
