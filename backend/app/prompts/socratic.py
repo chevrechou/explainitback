@@ -119,7 +119,10 @@ def build_system_prompt(topic: str, document_text: str | None = None) -> str:
         )
         doc_section = (
             f"\n\n## Source material\n"
-            f"The user is explaining the content of this document:\n"
+            f"The user is explaining the content of this document.\n"
+            f"On the very first line of your very first message ONLY, output the document's topic as: "
+            f"<topic>Concise Topic Name (4-7 words)</topic>\n"
+            f"This tag is invisible to the student — it will be stripped. Then on the next line start your opening question.\n"
             f"<document>\n{document_text}\n</document>\n"
             f"Base your sub-concepts and final assessment on this material."
         )

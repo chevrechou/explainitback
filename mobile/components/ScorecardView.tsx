@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet } from 'react-native'
 import { Assessment, SubConcept } from '../lib/types'
 
 const DIAGRAM_CHARS = /[│─┌┐└┘├┤┬┴┼╔╗╚╝║═▲▼◄►|+\-\/\\^]/
@@ -74,37 +73,33 @@ const STATUS = {
 }
 
 function ConceptRow({ concept, index }: { concept: SubConcept; index: number }) {
-  const [expanded, setExpanded] = useState(false)
   const cfg = STATUS[concept.status as keyof typeof STATUS] ?? STATUS.NOT_ADDRESSED
 
   return (
     <View style={styles.conceptBlock}>
-      <Pressable style={styles.conceptHeader} onPress={() => setExpanded(e => !e)}>
+      <View style={styles.conceptHeader}>
         <View style={[styles.statusBar, { backgroundColor: cfg.bar }]} />
         <Text style={styles.conceptIndex}>{String(index + 1).padStart(2, '0')}</Text>
         <Text style={styles.conceptName}>{concept.name}</Text>
         <View style={[styles.statusTag, { backgroundColor: cfg.bg }]}>
           <Text style={[styles.statusTagText, { color: cfg.color }]}>{cfg.label}</Text>
         </View>
-        <Text style={styles.toggle}>{expanded ? '−' : '+'}</Text>
-      </Pressable>
+      </View>
 
-      {expanded && (
-        <View style={styles.conceptBody}>
-          {concept.evidence ? (
-            <View style={styles.evidenceBlock}>
-              <Text style={styles.bodyLabel}>What you said</Text>
-              <Text style={styles.evidenceText}>"{concept.evidence}"</Text>
-            </View>
-          ) : null}
-          {concept.correct_explanation ? (
-            <View style={styles.explanationBlock}>
-              <Text style={styles.bodyLabel}>A good answer looks like</Text>
-              <ExplanationText text={concept.correct_explanation} />
-            </View>
-          ) : null}
-        </View>
-      )}
+      <View style={styles.conceptBody}>
+        {concept.correct_explanation ? (
+          <View style={styles.explanationBlock}>
+            <Text style={styles.bodyLabel}>A good answer looks like</Text>
+            <ExplanationText text={concept.correct_explanation} />
+          </View>
+        ) : null}
+        {concept.evidence ? (
+          <View style={styles.evidenceBlock}>
+            <Text style={styles.bodyLabel}>What you said</Text>
+            <Text style={styles.evidenceText}>"{concept.evidence}"</Text>
+          </View>
+        ) : null}
+      </View>
     </View>
   )
 }
@@ -225,6 +220,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
+    paddingBottom: 8,
     gap: 10,
   },
   statusBar: { width: 3, height: 32, flexShrink: 0 },
@@ -232,9 +228,7 @@ const styles = StyleSheet.create({
   conceptName: { flex: 1, fontSize: 15, fontWeight: '500', color: '#1A1A1A', lineHeight: 22 },
   statusTag: { paddingHorizontal: 7, paddingVertical: 3, flexShrink: 0 },
   statusTagText: { fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4 },
-  toggle: { fontSize: 16, color: '#88887E', width: 16, textAlign: 'center', flexShrink: 0 },
-
-  // Expanded body
+  // Body
   conceptBody: {
     paddingBottom: 16,
     paddingLeft: 13,

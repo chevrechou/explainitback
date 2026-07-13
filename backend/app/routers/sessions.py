@@ -1,6 +1,9 @@
 import logging
+import re
 import bleach
 from fastapi import APIRouter, HTTPException, UploadFile, File, Request
+
+_TOPIC_TAG_RE = re.compile(r"<topic>(.*?)</topic>", re.DOTALL | re.IGNORECASE)
 
 logger = logging.getLogger(__name__)
 from slowapi import Limiter
@@ -42,10 +45,16 @@ async def start_session(request: Request, req: SessionStartRequest):
 
     system_prompt = build_system_prompt(req.topic, document_text)
     raw = await chat(system_prompt, [], topic=req.topic)
-    first_message, _ = extract_assessment(raw)
+
+    # Extract derived topic name from custom documents
+    topic_match = _TOPIC_TAG_RE.search(raw)
+    topic = topic_match.group(1).strip() if (topic_match and document_text) else req.topic
+    raw_clean = _TOPIC_TAG_RE.sub("", raw).strip()
+
+    first_message, _ = extract_assessment(raw_clean)
     normalized = req.topic.lower().replace(" ", "_")
     sub_concept_names = TOPIC_SUBCONCEPTS.get(normalized, [])
-    return SessionStartResponse(first_message=first_message, topic=req.topic, sub_concept_names=sub_concept_names)
+    return SessionStartResponse(first_message=first_message, topic=topic, sub_concept_names=sub_concept_names)
 
 
 @router.post("/message", response_model=SessionMessageResponse)
