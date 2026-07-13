@@ -86,28 +86,24 @@ async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = 
 
 
 def _parse_assessment(raw: str, topic: str) -> Optional[Assessment]:
-    # Primary: extract ```json ... ``` fence (scratchpad-then-JSON format)
-    fence_match = re.search(r"```json\s*(.*?)\s*```", raw, re.DOTALL | re.IGNORECASE)
+    json_text = raw.strip()
+
+    # Strip markdown fences if the model added them despite instructions
+    fence_match = re.search(r"```(?:json)?\s*(.*?)\s*```", json_text, re.DOTALL | re.IGNORECASE)
     if fence_match:
         json_text = fence_match.group(1)
-    else:
-        # Fallback: model output bare JSON (old behaviour)
-        json_text = raw.strip()
-        # Strip any remaining fences
-        json_text = re.sub(r"^```(?:json)?\s*", "", json_text, flags=re.MULTILINE)
-        json_text = re.sub(r"\s*```\s*$", "", json_text, flags=re.MULTILINE)
 
-    # Fix common score formatting issues
+    # Fix common score formatting: "75/100" or "75" (string) → 75
     json_text = re.sub(r'"overall_score"\s*:\s*"?(\d+)\s*/\s*100"?', r'"overall_score": \1', json_text)
     json_text = re.sub(r'"overall_score"\s*:\s*"(\d+)"', r'"overall_score": \1', json_text)
 
     try:
-        data = json.loads(json_text.strip())
+        data = json.loads(json_text)
         if "topic" not in data:
             data["topic"] = topic
         return Assessment(**data)
     except Exception as e:
-        logger.error("Evaluator parse error: %s | fence_found: %s | raw: %.800s", e, bool(fence_match), raw[:800])
+        logger.error("Evaluator parse error: %s | raw_preview: %.600s", e, raw[:600])
         return None
 
 
@@ -132,4 +128,5 @@ async def run_evaluation(
             logger.error("Evaluator fallback also failed: %s", e2)
             return None
 
+    logger.info("Evaluator raw response (%d chars): %.300s", len(raw), raw[:300])
     return _parse_assessment(raw, topic)
