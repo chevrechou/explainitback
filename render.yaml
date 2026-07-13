@@ -5,16 +5,17 @@ services:
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
     envVars:
       - key: AI_PROVIDER
         value: gemini
+      - key: AI_MAX_TOKENS
+        value: "2000"
+      - key: MAX_TURNS_PER_SESSION
+        value: "10"
+      - key: DOCUMENT_MAX_TOKENS
+        value: "8000"
       - key: GEMINI_API_KEY
         sync: false
       - key: GROQ_API_KEY
-        sync: false
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_ANON_KEY
-        sync: false
-      - key: SUPABASE_SERVICE_KEY
         sync: false
