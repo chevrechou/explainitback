@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import re
@@ -59,7 +60,7 @@ def _build_eval_user_message(
     return "\n".join(lines)
 
 
-async def _call_gemini_eval(user_message: str, model: str) -> str:
+async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = True) -> str:
     url = f"{_GEMINI_BASE}/{model}:generateContent?key={settings.gemini_api_key}"
     payload = {
         "systemInstruction": {"parts": [{"text": EVALUATOR_SYSTEM_PROMPT}]},
@@ -71,11 +72,16 @@ async def _call_gemini_eval(user_message: str, model: str) -> str:
     }
     async with httpx.AsyncClient(timeout=60.0) as client:
         resp = await client.post(url, json=payload)
-        resp.raise_for_status()
+        if resp.status_code == 429 and retry_on_429:
+            logger.warning("Gemini eval 429 rate limit on %s — retrying after 12s", model)
+            await asyncio.sleep(12)
+            resp = await client.post(url, json=payload)
+        if not resp.is_success:
+            raise ValueError(f"Gemini eval HTTP {resp.status_code} on model {model}")
     data = resp.json()
     candidates = data.get("candidates", [])
     if not candidates:
-        raise ValueError(f"Evaluator: no candidates returned: {data.get('promptFeedback')}")
+        raise ValueError(f"Evaluator: no candidates from {model}: {data.get('promptFeedback')}")
     return candidates[0]["content"]["parts"][0]["text"]
 
 
