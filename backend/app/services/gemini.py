@@ -25,7 +25,7 @@ async def gemini_chat(system_prompt: str, messages: list[dict]) -> str:
         "generationConfig": {"maxOutputTokens": settings.ai_max_tokens},
     }
     url = f"{_GEMINI_URL}?key={settings.gemini_api_key}"
-    async with httpx.AsyncClient(timeout=45.0) as client:
+    async with httpx.AsyncClient(timeout=8.0) as client:
         resp = await client.post(url, json=payload)
         if not resp.is_success:
             raise ValueError(f"Gemini HTTP {resp.status_code}")

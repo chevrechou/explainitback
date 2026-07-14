@@ -1,5 +1,10 @@
+import asyncio
+import logging
+
 import httpx
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 _GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 _GROQ_AUDIO_URL = "https://api.groq.com/openai/v1/audio/transcriptions"
@@ -12,13 +17,15 @@ async def groq_chat(system_prompt: str, messages: list[dict]) -> str:
         "messages": msgs,
         "max_tokens": settings.ai_max_tokens,
     }
+    headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
     async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.post(
-            _GROQ_CHAT_URL,
-            json=payload,
-            headers={"Authorization": f"Bearer {settings.groq_api_key}"},
-        )
-        resp.raise_for_status()
+        resp = await client.post(_GROQ_CHAT_URL, json=payload, headers=headers)
+        if resp.status_code == 429:
+            logger.warning("Groq chat 429 — retrying after 10s")
+            await asyncio.sleep(10)
+            resp = await client.post(_GROQ_CHAT_URL, json=payload, headers=headers)
+        if not resp.is_success:
+            raise ValueError(f"Groq HTTP {resp.status_code}")
     return resp.json()["choices"][0]["message"]["content"]
 
 
