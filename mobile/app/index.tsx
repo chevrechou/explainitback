@@ -30,6 +30,21 @@ export default function TopicPicker() {
     api.getTopics().then((r) => setTopics(r.topics)).catch(() => {})
   }, [])
 
+  function deriveTopicLabel(value: string): string {
+    const v = value.trim()
+    if (!v) return 'Custom Topic'
+    if (v.startsWith('http')) {
+      try {
+        const url = new URL(v)
+        const slug = url.pathname.split('/').filter(Boolean).pop() ?? ''
+        if (slug) return slug.replace(/[-_]/g, ' ').replace(/\.\w+$/, '')
+        return url.hostname.replace(/^www\./, '')
+      } catch { return 'Custom Topic' }
+    }
+    // First 6 words of pasted text
+    return v.split(/\s+/).slice(0, 6).join(' ')
+  }
+
   async function handleStart(topic: string, documentText?: string) {
     setLoading(true)
     try {
@@ -102,7 +117,7 @@ export default function TopicPicker() {
         label={docLabel}
         onChangeValue={setDocValue}
         onChangeLabel={setDocLabel}
-        onSubmit={() => handleStart(docLabel || 'Custom Topic', docValue)}
+        onSubmit={() => handleStart(docLabel || deriveTopicLabel(docValue), docValue)}
         disabled={loading || !docValue.trim()}
       />
     </ScrollView>

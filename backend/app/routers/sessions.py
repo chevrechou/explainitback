@@ -49,9 +49,13 @@ async def start_session(request: Request, req: SessionStartRequest):
     system_prompt = build_system_prompt(req.topic, document_text)
     raw = await chat(system_prompt, [], topic=req.topic)
 
-    # Extract derived topic name from custom documents
+    # Use AI-extracted topic only when user didn't provide an explicit label
+    _user_provided_label = req.topic.strip().lower() not in ("", "custom topic")
     topic_match = _TOPIC_TAG_RE.search(raw)
-    topic = topic_match.group(1).strip() if (topic_match and document_text) else req.topic
+    if topic_match and document_text and not _user_provided_label:
+        topic = topic_match.group(1).strip()
+    else:
+        topic = req.topic
     raw_clean = _TOPIC_TAG_RE.sub("", raw).strip()
 
     first_message, _ = extract_assessment(raw_clean)

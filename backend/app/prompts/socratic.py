@@ -119,7 +119,8 @@ def build_system_prompt(topic: str, document_text: str | None = None) -> str:
         )
         doc_section = ""
 
+    display_topic = topic if topic.strip().lower() not in ("", "custom topic") else "the material"
     return SOCRATIC_SYSTEM_PROMPT.format(
-        topic=topic,
+        topic=display_topic,
         sub_concepts=sub_concept_instruction,
     ) + doc_section

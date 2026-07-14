@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 _EVAL_MODEL = "gemini-2.0-flash"
 _EVAL_FALLBACK_MODEL = "gemini-1.5-flash"
 _GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
+_GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
+_GROQ_EVAL_MODEL = "llama-3.3-70b-versatile"
 
 # Strip the sanitization wrapper added by sanitize_for_ai()
 _SANITIZE_PREFIX = re.compile(r"^\[Student says\]:\s*", re.IGNORECASE)
@@ -58,6 +60,33 @@ def _build_eval_user_message(
             f"<document>\n{document_text[:4000]}\n</document>",
         ]
     return "\n".join(lines)
+
+
+async def _call_groq_eval(user_message: str) -> str:
+    payload = {
+        "model": _GROQ_EVAL_MODEL,
+        "messages": [
+            {"role": "system", "content": EVALUATOR_SYSTEM_PROMPT},
+            {"role": "user", "content": user_message},
+        ],
+        "max_tokens": 4096,
+        "temperature": 0.1,
+        "response_format": {"type": "json_object"},
+    }
+    headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        resp = await client.post(_GROQ_CHAT_URL, json=payload, headers=headers)
+        if resp.status_code == 429:
+            logger.warning("Groq eval 429 — retrying after 10s")
+            await asyncio.sleep(10)
+            resp = await client.post(_GROQ_CHAT_URL, json=payload, headers=headers)
+        if not resp.is_success:
+            raise ValueError(f"Groq eval HTTP {resp.status_code}")
+        data = resp.json()
+    choices = data.get("choices", [])
+    if not choices:
+        raise ValueError("Groq eval: no choices in response")
+    return choices[0]["message"]["content"]
 
 
 async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = True) -> str:
@@ -126,15 +155,20 @@ async def run_evaluation(
 
     user_message = _build_eval_user_message(topic, sub_concepts, conversation, document_text)
 
+    # Primary: Groq — fast and on a separate rate-limit quota from the Gemini chat calls
     try:
-        raw = await _call_gemini_eval(user_message, _EVAL_MODEL)
+        raw = await _call_groq_eval(user_message)
     except Exception as e:
-        logger.warning("Evaluator primary model failed (%s), falling back to %s", e, _EVAL_FALLBACK_MODEL)
+        logger.warning("Groq eval failed (%s), falling back to Gemini", e)
         try:
-            raw = await _call_gemini_eval(user_message, _EVAL_FALLBACK_MODEL)
+            raw = await _call_gemini_eval(user_message, _EVAL_MODEL)
         except Exception as e2:
-            logger.error("Evaluator fallback also failed: %s", e2)
-            return None
+            logger.warning("Gemini eval %s failed (%s), trying %s", _EVAL_MODEL, e2, _EVAL_FALLBACK_MODEL)
+            try:
+                raw = await _call_gemini_eval(user_message, _EVAL_FALLBACK_MODEL)
+            except Exception as e3:
+                logger.error("All eval models failed: %s", e3)
+                return None
 
     logger.info("Evaluator raw response (%d chars): %.600s", len(raw), raw[:600])
     result = _parse_assessment(raw, topic)
