@@ -29,7 +29,7 @@ async def chat(system_prompt: str, messages: list[dict], topic: str = "") -> str
     if provider == "gemini":
         from app.services.gemini import gemini_chat
         try:
-            return await _retry(lambda: gemini_chat(system_prompt, messages))
+            return await gemini_chat(system_prompt, messages)
         except Exception as exc:
             logger.warning("Gemini failed (%s); falling back to Groq", exc)
             from app.services.groq import groq_chat

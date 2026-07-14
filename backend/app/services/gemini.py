@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 import httpx
@@ -28,10 +27,6 @@ async def gemini_chat(system_prompt: str, messages: list[dict]) -> str:
     url = f"{_GEMINI_URL}?key={settings.gemini_api_key}"
     async with httpx.AsyncClient(timeout=45.0) as client:
         resp = await client.post(url, json=payload)
-        if resp.status_code == 429:
-            logger.warning("Gemini chat 429 — retrying after 25s")
-            await asyncio.sleep(25)
-            resp = await client.post(url, json=payload)
         if not resp.is_success:
             raise ValueError(f"Gemini HTTP {resp.status_code}")
     data = resp.json()
