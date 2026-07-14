@@ -2,14 +2,12 @@ import { Assessment, Message, Topic } from './types'
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000'
 
-async function request<T>(
+async function attempt<T>(
   path: string,
-  options: RequestInit = {},
-  token?: string | null,
-  timeoutMs = 90_000,
+  options: RequestInit,
+  headers: Record<string, string>,
+  timeoutMs: number,
 ): Promise<T> {
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  if (token) headers['Authorization'] = `Bearer ${token}`
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
   try {
@@ -20,10 +18,30 @@ async function request<T>(
     }
     return res.json() as Promise<T>
   } catch (err: any) {
-    if (err.name === 'AbortError') throw new Error('Request timed out — the server may be waking up. Try again in a moment.')
+    if (err.name === 'AbortError') throw new Error('Server is taking a while to wake up — please try again.')
     throw err
   } finally {
     clearTimeout(timer)
+  }
+}
+
+async function request<T>(
+  path: string,
+  options: RequestInit = {},
+  token?: string | null,
+  timeoutMs = 90_000,
+): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  try {
+    return await attempt<T>(path, options, headers, timeoutMs)
+  } catch (err: any) {
+    // Network-level failure (server sleeping / connection reset): retry once after 4s
+    if (err instanceof TypeError) {
+      await new Promise(r => setTimeout(r, 4000))
+      return attempt<T>(path, options, headers, timeoutMs)
+    }
+    throw err
   }
 }
 

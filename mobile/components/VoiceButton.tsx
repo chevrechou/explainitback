@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Platform, Pressable, StyleSheet, Text, ActivityIndicator, Animated, View } from 'react-native'
-import { Audio } from 'expo-av'
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from 'expo-av'
 import { api } from '../lib/api'
 import { useStore } from '../lib/store'
 
@@ -46,7 +46,12 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
   async function startNativeRecording() {
     const { granted } = await Audio.requestPermissionsAsync()
     if (!granted) return
-    await Audio.setAudioModeAsync({ allowsRecordingIOS: true, playsInSilentModeIOS: true })
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      playsInSilentModeIOS: true,
+      interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+    })
     const { recording } = await Audio.Recording.createAsync(
       Audio.RecordingOptionsPresets.HIGH_QUALITY,
     )
@@ -59,13 +64,14 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     if (!recording) return
     setState('transcribing')
     await recording.stopAndUnloadAsync()
+    await Audio.setAudioModeAsync({ allowsRecordingIOS: false, playsInSilentModeIOS: true })
     const uri = recording.getURI()
     recordingRef.current = null
     if (!uri) { setState('idle'); return }
     try {
       const blob = await (await fetch(uri)).blob()
       const { text } = await api.transcribeAudio(blob, 'audio.m4a', user?.accessToken)
-      onTranscriptRef.current(text)
+      if (text?.trim()) onTranscriptRef.current(text.trim())
     } catch {
       // silently ignore transcription errors
     } finally {
@@ -81,7 +87,9 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
     }
 
     // @ts-ignore — navigator not typed for RN
-    navigator.mediaDevices?.getUserMedia({ audio: true })
+    navigator.mediaDevices?.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
+    })
       .then((stream: MediaStream) => {
         chunksRef.current = []
         // @ts-ignore
