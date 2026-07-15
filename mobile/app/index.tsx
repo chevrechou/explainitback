@@ -74,6 +74,60 @@ export default function TopicPicker() {
         The fastest way to find out if you actually understand something is to explain it to someone who doesn't. Koda is that someone.
       </Text>
 
+      {/* How it works panel */}
+      <View style={styles.howPanel}>
+        <View style={styles.howSection}>
+          <Text style={styles.howLabel}>How to use it</Text>
+          <View style={styles.howSteps}>
+            <View style={styles.howStep}>
+              <Text style={styles.howNum}>1</Text>
+              <Text style={styles.howText}>Pick a topic or paste your own notes. Koda will ask you to explain it from scratch.</Text>
+            </View>
+            <View style={styles.howStep}>
+              <Text style={styles.howNum}>2</Text>
+              <Text style={styles.howText}>Answer Koda's follow-up questions in your own words — no looking things up, no hints.</Text>
+            </View>
+            <View style={styles.howStep}>
+              <Text style={styles.howNum}>3</Text>
+              <Text style={styles.howText}>After ~8 turns, get a scorecard: what you understood, what was surface-level, what you missed.</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.howDivider} />
+
+        <View style={styles.howSection}>
+          <Text style={styles.howLabel}>Why it works</Text>
+          <Text style={styles.howBody}>
+            When you try to teach something, gaps that felt invisible while reading become obvious. This is the protégé effect — explaining forces you to find and fill the holes in your own understanding, which is far more effective than re-reading.
+          </Text>
+        </View>
+
+        <View style={styles.howDivider} />
+
+        <View style={styles.howSection}>
+          <Text style={styles.howLabel}>How to score well</Text>
+          <View style={styles.howTips}>
+            <View style={styles.howTip}>
+              <Text style={styles.howTipDot}>▸</Text>
+              <Text style={styles.howText}><Text style={styles.howBold}>Explain mechanisms, not just names.</Text> "Chlorophyll absorbs light to kick off electron transfer" beats "chlorophyll is involved in photosynthesis."</Text>
+            </View>
+            <View style={styles.howTip}>
+              <Text style={styles.howTipDot}>▸</Text>
+              <Text style={styles.howText}><Text style={styles.howBold}>Use cause and effect.</Text> Words like "because," "which causes," and "so that" signal real understanding.</Text>
+            </View>
+            <View style={styles.howTip}>
+              <Text style={styles.howTipDot}>▸</Text>
+              <Text style={styles.howText}><Text style={styles.howBold}>Don't just agree when Koda follows up.</Text> If Koda asks why, explain the why — don't restate the question back.</Text>
+            </View>
+            <View style={styles.howTip}>
+              <Text style={styles.howTipDot}>▸</Text>
+              <Text style={styles.howText}><Text style={styles.howBold}>Informal language is fine.</Text> "Plants eat sunlight" can earn full marks if the mechanism is right.</Text>
+            </View>
+          </View>
+        </View>
+      </View>
+
       {/* Divider */}
       <View style={styles.divider} />
 
@@ -140,4 +194,36 @@ const styles = StyleSheet.create({
   topicList: { marginBottom: 8 },
 
   customHint: { fontSize: 13, color: '#88887E', lineHeight: 20, marginTop: 6, marginBottom: 16 },
+
+  howPanel: {
+    backgroundColor: '#EDECEA',
+    borderLeftWidth: 3,
+    borderLeftColor: '#C8401A',
+    marginBottom: 28,
+  },
+  howSection: { padding: 16, paddingBottom: 14 },
+  howDivider: { height: 1, backgroundColor: '#D5D1C8', marginHorizontal: 16 },
+  howLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#88887E',
+    textTransform: 'uppercase',
+    letterSpacing: 0.9,
+    marginBottom: 12,
+  },
+  howBody: { fontSize: 14, color: '#1A1A1A', lineHeight: 22 },
+  howSteps: { gap: 10 },
+  howStep: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  howNum: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#C8401A',
+    width: 16,
+    marginTop: 2,
+  },
+  howTips: { gap: 10 },
+  howTip: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
+  howTipDot: { fontSize: 12, color: '#C8401A', marginTop: 2, width: 12 },
+  howText: { flex: 1, fontSize: 14, color: '#1A1A1A', lineHeight: 22 },
+  howBold: { fontWeight: '700' },
 })
