@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 import bleach
@@ -46,15 +47,21 @@ async def start_session(request: Request, req: SessionStartRequest):
     if document_text:
         document_text = document_text[: settings.document_max_tokens * 4]
 
-    system_prompt = build_system_prompt(req.topic, document_text)
-    raw = await chat(system_prompt, [], topic=req.topic)
-
-    # Use AI-extracted topic only when user didn't provide an explicit label
     _user_provided_label = req.topic.strip().lower() not in ("", "custom topic")
-    topic_match = _TOPIC_TAG_RE.search(raw)
-    if topic_match and document_text and not _user_provided_label:
-        topic = topic_match.group(1).strip()
+    system_prompt = build_system_prompt(req.topic, document_text)
+
+    if document_text and not _user_provided_label:
+        # Run topic analysis in parallel with first Koda message — zero added latency
+        from app.services.groq import groq_generate_topic
+        raw, generated_topic = await asyncio.gather(
+            chat(system_prompt, [], topic=req.topic),
+            groq_generate_topic(document_text),
+        )
+        # Prefer AI's inline <topic> tag if present; generated_topic is the fallback
+        topic_match = _TOPIC_TAG_RE.search(raw)
+        topic = topic_match.group(1).strip() if topic_match else generated_topic
     else:
+        raw = await chat(system_prompt, [], topic=req.topic)
         topic = req.topic
     raw_clean = _TOPIC_TAG_RE.sub("", raw).strip()
 

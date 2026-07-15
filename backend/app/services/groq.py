@@ -29,6 +29,30 @@ async def groq_chat(system_prompt: str, messages: list[dict]) -> str:
     return resp.json()["choices"][0]["message"]["content"]
 
 
+async def groq_generate_topic(text: str) -> str:
+    """Analyze document content and return a concise 4-6 word topic name."""
+    snippet = text[:800].strip()
+    payload = {
+        "model": "llama-3.1-8b-instant",
+        "messages": [{
+            "role": "user",
+            "content": (
+                "Output ONLY a topic name (4-6 words, Title Case) that best describes "
+                "what this text is about. No explanation, no punctuation at end.\n\n"
+                + snippet
+            ),
+        }],
+        "max_tokens": 20,
+        "temperature": 0,
+    }
+    headers = {"Authorization": f"Bearer {settings.groq_api_key}"}
+    async with httpx.AsyncClient(timeout=8.0) as client:
+        resp = await client.post(_GROQ_CHAT_URL, json=payload, headers=headers)
+        if resp.is_success:
+            return resp.json()["choices"][0]["message"]["content"].strip()
+    return "Custom Material"
+
+
 _MIME_BY_EXT = {
     "m4a": "audio/m4a", "mp4": "audio/mp4", "mp3": "audio/mpeg",
     "wav": "audio/wav", "webm": "audio/webm", "ogg": "audio/ogg",
