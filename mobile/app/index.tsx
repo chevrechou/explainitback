@@ -73,6 +73,9 @@ export default function TopicPicker() {
       <Text style={styles.subtitle}>
         The fastest way to find out if you actually understand something is to explain it to someone who doesn't. Koda is that someone.
       </Text>
+      <Text style={styles.wakeupNote}>
+        First load may take 30–60 seconds while the server wakes up. Subsequent messages will be fast.
+      </Text>
 
       {/* How it works panel */}
       <View style={styles.howPanel}>
@@ -178,7 +181,8 @@ const styles = StyleSheet.create({
   tagline: { fontSize: 12, color: '#88887E', marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
   authLink: { fontSize: 13, color: '#C8401A', fontWeight: '600', marginTop: 4 },
 
-  subtitle: { fontSize: 17, color: '#1A1A1A', lineHeight: 28, marginBottom: 28 },
+  subtitle: { fontSize: 17, color: '#1A1A1A', lineHeight: 28, marginBottom: 10 },
+  wakeupNote: { fontSize: 12, color: '#88887E', lineHeight: 18, marginBottom: 20, fontStyle: 'italic' },
 
   divider: { height: 1, backgroundColor: '#D5D1C8', marginBottom: 20 },
 
