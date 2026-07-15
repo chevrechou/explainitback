@@ -79,6 +79,7 @@ export default function TopicPicker() {
 
       {/* How it works panel */}
       <View style={styles.howPanel}>
+        <View style={styles.howPanelAccent} />
         <View style={styles.howSection}>
           <Text style={styles.howLabel}>How to use it</Text>
           <View style={styles.howSteps}>
@@ -144,6 +145,7 @@ export default function TopicPicker() {
             topic={t}
             index={i}
             onPress={() => !loading && handleStart(t.name)}
+            isLast={i === topics.length - 1}
           />
         ))}
       </View>
@@ -195,39 +197,51 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
-  topicList: { marginBottom: 8 },
+  topicList: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#EDECEA',
+    marginBottom: 8,
+  },
 
   customHint: { fontSize: 13, color: '#88887E', lineHeight: 20, marginTop: 6, marginBottom: 16 },
 
   howPanel: {
     backgroundColor: '#EDECEA',
-    borderLeftWidth: 3,
-    borderLeftColor: '#C8401A',
+    borderRadius: 14,
+    overflow: 'hidden',
     marginBottom: 28,
   },
-  howSection: { padding: 16, paddingBottom: 14 },
-  howDivider: { height: 1, backgroundColor: '#D5D1C8', marginHorizontal: 16 },
+  howPanelAccent: { height: 4, backgroundColor: '#C8401A' },
+  howSection: { padding: 20, paddingBottom: 16 },
+  howDivider: { height: 1, backgroundColor: '#D5D1C8', marginHorizontal: 20 },
   howLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#88887E',
+    color: '#1A1A1A',
     textTransform: 'uppercase',
     letterSpacing: 0.9,
-    marginBottom: 12,
+    marginBottom: 14,
   },
-  howBody: { fontSize: 14, color: '#1A1A1A', lineHeight: 22 },
-  howSteps: { gap: 10 },
-  howStep: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  howBody: { fontSize: 15, color: '#1A1A1A', lineHeight: 25 },
+  howSteps: { gap: 12 },
+  howStep: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   howNum: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
-    color: '#C8401A',
-    width: 16,
-    marginTop: 2,
+    color: '#FFFFFF',
+    width: 22,
+    height: 22,
+    lineHeight: 22,
+    textAlign: 'center',
+    backgroundColor: '#C8401A',
+    borderRadius: 11,
+    marginTop: 1,
+    overflow: 'hidden',
   },
-  howTips: { gap: 10 },
-  howTip: { flexDirection: 'row', gap: 8, alignItems: 'flex-start' },
-  howTipDot: { fontSize: 12, color: '#C8401A', marginTop: 2, width: 12 },
-  howText: { flex: 1, fontSize: 14, color: '#1A1A1A', lineHeight: 22 },
+  howTips: { gap: 12 },
+  howTip: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
+  howTipDot: { fontSize: 14, color: '#C8401A', marginTop: 1, width: 16 },
+  howText: { flex: 1, fontSize: 15, color: '#1A1A1A', lineHeight: 25 },
   howBold: { fontWeight: '700' },
 })

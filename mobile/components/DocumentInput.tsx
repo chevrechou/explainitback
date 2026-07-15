@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: '#D5D1C8',
+    borderRadius: 8,
     padding: 12,
     marginBottom: 8,
     backgroundColor: '#FFFFFF',
@@ -53,6 +54,7 @@ const styles = StyleSheet.create({
   textarea: { minHeight: 96, textAlignVertical: 'top' },
   button: {
     backgroundColor: '#1A1A1A',
+    borderRadius: 8,
     padding: 15,
     alignItems: 'center',
     marginTop: 4,

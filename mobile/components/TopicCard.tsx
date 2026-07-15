@@ -1,12 +1,12 @@
 import { Pressable, Text, StyleSheet, View } from 'react-native'
 import { Topic } from '../lib/types'
 
-type Props = { topic: Topic; index?: number; onPress: () => void }
+type Props = { topic: Topic; index?: number; isLast?: boolean; onPress: () => void }
 
-export function TopicCard({ topic, index, onPress }: Props) {
+export function TopicCard({ topic, index, isLast, onPress }: Props) {
   const num = index !== undefined ? String(index + 1).padStart(2, '0') : null
   return (
-    <Pressable style={styles.row} onPress={onPress}>
+    <Pressable style={[styles.row, isLast && styles.rowLast]} onPress={onPress}>
       {num && <Text style={styles.num}>{num}</Text>}
       <View style={styles.info}>
         <Text style={styles.name}>{topic.name}</Text>
@@ -22,10 +22,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 16,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#D5D1C8',
     gap: 14,
   },
+  rowLast: { borderBottomWidth: 0 },
   num: { fontSize: 12, fontWeight: '600', color: '#88887E', width: 24 },
   info: { flex: 1 },
   name: { fontSize: 17, fontWeight: '600', color: '#1A1A1A', marginBottom: 2 },
