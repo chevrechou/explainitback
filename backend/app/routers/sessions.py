@@ -145,6 +145,15 @@ async def rate_session(request: Request, body: dict):
     comment = body.get("comment", "")
     topic = body.get("topic", "")
     logger.info("Session rating — topic: %s | stars: %s | comment: %.200s", topic, stars, comment)
+    if settings.sheets_webhook_url:
+        try:
+            import httpx
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                await client.post(settings.sheets_webhook_url, json={
+                    "topic": topic, "stars": stars, "comment": comment,
+                })
+        except Exception as exc:
+            logger.warning("Sheets webhook failed: %s", exc)
     return {"ok": True}
 
 
