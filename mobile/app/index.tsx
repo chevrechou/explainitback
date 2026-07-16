@@ -69,92 +69,61 @@ export default function TopicPicker() {
         )}
       </View>
 
-      {/* Hero */}
       <Text style={styles.subtitle}>
-        The fastest way to find out if you actually understand something is to explain it to someone who doesn't. Koda is that someone.
-      </Text>
-      <Text style={styles.wakeupNote}>
-        First load may take 30–60 seconds while the server wakes up. Subsequent messages will be fast.
+        The fastest way to find out if you actually understand something is to explain it to someone who doesn't.
       </Text>
 
-      {/* How it works panel */}
-      <View style={styles.howPanel}>
-        <View style={styles.howPanelAccent} />
-        <View style={styles.howSection}>
-          <Text style={styles.howLabel}>How to use it</Text>
-          <View style={styles.howSteps}>
-            <View style={styles.howStep}>
-              <Text style={styles.howNum}>1</Text>
-              <Text style={styles.howText}>Pick a topic or paste your own notes. Koda will ask you to explain it from scratch.</Text>
-            </View>
-            <View style={styles.howStep}>
-              <Text style={styles.howNum}>2</Text>
-              <Text style={styles.howText}>Answer Koda's follow-up questions in your own words — no looking things up, no hints.</Text>
-            </View>
-            <View style={styles.howStep}>
-              <Text style={styles.howNum}>3</Text>
-              <Text style={styles.howText}>After ~8 turns, get a scorecard: what you understood, what was surface-level, what you missed.</Text>
+      {/* Two-column: instructions + topics */}
+      <View style={styles.twoCol}>
+
+        {/* How it works */}
+        <View style={styles.colLeft}>
+          <View style={styles.howPanel}>
+            <View style={styles.howPanelAccent} />
+            <View style={styles.howSection}>
+              <Text style={styles.howLabel}>How it works</Text>
+              <View style={styles.howSteps}>
+                <View style={styles.howStep}>
+                  <Text style={styles.howNum}>1</Text>
+                  <Text style={styles.howText}>Pick a topic — or paste your own notes.</Text>
+                </View>
+                <View style={styles.howStep}>
+                  <Text style={styles.howNum}>2</Text>
+                  <Text style={styles.howText}>Explain it to Koda in your own words.</Text>
+                </View>
+                <View style={styles.howStep}>
+                  <Text style={styles.howNum}>3</Text>
+                  <Text style={styles.howText}>Get a scorecard after ~8 turns.</Text>
+                </View>
+              </View>
             </View>
           </View>
         </View>
 
-        <View style={styles.howDivider} />
-
-        <View style={styles.howSection}>
-          <Text style={styles.howLabel}>Why it works</Text>
-          <Text style={styles.howBody}>
-            When you try to teach something, gaps that felt invisible while reading become obvious. This is the protégé effect — explaining forces you to find and fill the holes in your own understanding, which is far more effective than re-reading.
-          </Text>
-        </View>
-
-        <View style={styles.howDivider} />
-
-        <View style={styles.howSection}>
-          <Text style={styles.howLabel}>How to score well</Text>
-          <View style={styles.howTips}>
-            <View style={styles.howTip}>
-              <Text style={styles.howTipDot}>▸</Text>
-              <Text style={styles.howText}><Text style={styles.howBold}>Explain mechanisms, not just names.</Text> "Chlorophyll absorbs light to kick off electron transfer" beats "chlorophyll is involved in photosynthesis."</Text>
-            </View>
-            <View style={styles.howTip}>
-              <Text style={styles.howTipDot}>▸</Text>
-              <Text style={styles.howText}><Text style={styles.howBold}>Use cause and effect.</Text> Words like "because," "which causes," and "so that" signal real understanding.</Text>
-            </View>
-            <View style={styles.howTip}>
-              <Text style={styles.howTipDot}>▸</Text>
-              <Text style={styles.howText}><Text style={styles.howBold}>Don't just agree when Koda follows up.</Text> If Koda asks why, explain the why — don't restate the question back.</Text>
-            </View>
-            <View style={styles.howTip}>
-              <Text style={styles.howTipDot}>▸</Text>
-              <Text style={styles.howText}><Text style={styles.howBold}>Informal language is fine.</Text> "Plants eat sunlight" can earn full marks if the mechanism is right.</Text>
-            </View>
+        {/* Topics */}
+        <View style={styles.colRight}>
+          <Text style={styles.sectionLabel}>Topics</Text>
+          {loading && <ActivityIndicator style={{ marginVertical: 10 }} color="#1A1A1A" />}
+          <View style={styles.topicList}>
+            {topics.map((t, i) => (
+              <TopicCard
+                key={t.id}
+                topic={t}
+                onPress={() => !loading && handleStart(t.name)}
+                isLast={i === topics.length - 1}
+                compact
+              />
+            ))}
           </View>
         </View>
-      </View>
 
-      {/* Divider */}
-      <View style={styles.divider} />
-
-      {/* Topics */}
-      <Text style={styles.sectionLabel}>Topics</Text>
-      {loading && <ActivityIndicator style={{ marginVertical: 20 }} color="#1A1A1A" />}
-      <View style={styles.topicList}>
-        {topics.map((t, i) => (
-          <TopicCard
-            key={t.id}
-            topic={t}
-            index={i}
-            onPress={() => !loading && handleStart(t.name)}
-            isLast={i === topics.length - 1}
-          />
-        ))}
       </View>
 
       {/* Custom material */}
       <View style={styles.divider} />
       <Text style={styles.sectionLabel}>Your own material</Text>
       <Text style={styles.customHint}>
-        Paste notes, a textbook excerpt, or drop in a URL. Koda will quiz you on it.
+        Paste notes, a textbook excerpt, or a URL. Koda will quiz you on it.
       </Text>
       <DocumentInput
         value={docValue}
@@ -180,68 +149,68 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   title: { fontSize: 26, fontWeight: '800', color: '#1A1A1A', letterSpacing: -0.3 },
-  tagline: { fontSize: 12, color: '#88887E', marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
+  tagline: { fontSize: 12, color: '#4A4942', marginTop: 3, textTransform: 'uppercase', letterSpacing: 0.5 },
   authLink: { fontSize: 13, color: '#C8401A', fontWeight: '600', marginTop: 4 },
 
-  subtitle: { fontSize: 17, color: '#1A1A1A', lineHeight: 28, marginBottom: 10 },
-  wakeupNote: { fontSize: 12, color: '#88887E', lineHeight: 18, marginBottom: 20, fontStyle: 'italic' },
+  subtitle: { fontSize: 18, color: '#1A1A1A', lineHeight: 28, marginBottom: 20 },
 
   divider: { height: 1, backgroundColor: '#D5D1C8', marginBottom: 20 },
 
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#88887E',
+    color: '#4A4942',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
-    marginBottom: 4,
+    marginBottom: 10,
   },
+
+  twoCol: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 28,
+    alignItems: 'flex-start',
+  },
+  colLeft: { flex: 1 },
+  colRight: { flex: 1 },
 
   topicList: {
     borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: '#EDECEA',
-    marginBottom: 8,
   },
 
-  customHint: { fontSize: 13, color: '#88887E', lineHeight: 20, marginTop: 6, marginBottom: 16 },
+  customHint: { fontSize: 15, color: '#4A4942', lineHeight: 22, marginBottom: 16 },
 
   howPanel: {
     backgroundColor: '#EDECEA',
     borderRadius: 14,
     overflow: 'hidden',
-    marginBottom: 28,
   },
   howPanelAccent: { height: 4, backgroundColor: '#C8401A' },
-  howSection: { padding: 20, paddingBottom: 16 },
-  howDivider: { height: 1, backgroundColor: '#D5D1C8', marginHorizontal: 20 },
+  howSection: { padding: 14, paddingBottom: 16 },
   howLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: '#1A1A1A',
     textTransform: 'uppercase',
     letterSpacing: 0.9,
     marginBottom: 14,
   },
-  howBody: { fontSize: 15, color: '#1A1A1A', lineHeight: 25 },
-  howSteps: { gap: 12 },
-  howStep: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  howSteps: { gap: 14 },
+  howStep: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
   howNum: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800',
     color: '#FFFFFF',
-    width: 22,
-    height: 22,
-    lineHeight: 22,
+    width: 20,
+    height: 20,
+    lineHeight: 20,
     textAlign: 'center',
     backgroundColor: '#C8401A',
-    borderRadius: 11,
+    borderRadius: 10,
     marginTop: 1,
     overflow: 'hidden',
   },
-  howTips: { gap: 12 },
-  howTip: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  howTipDot: { fontSize: 14, color: '#C8401A', marginTop: 1, width: 16 },
-  howText: { flex: 1, fontSize: 15, color: '#1A1A1A', lineHeight: 25 },
-  howBold: { fontWeight: '700' },
+  howText: { flex: 1, fontSize: 15, color: '#1A1A1A', lineHeight: 22 },
 })
