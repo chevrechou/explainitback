@@ -73,6 +73,13 @@ export default function TopicPicker() {
         The fastest way to find out if you actually understand something is to explain it to someone who doesn't.
       </Text>
 
+      <View style={styles.wakeupNotice}>
+        <Text style={styles.wakeupText}>
+          <Text style={styles.wakeupBold}>First load may take 30–60 seconds</Text>
+          {' '}while the server wakes up. Subsequent messages will be fast.
+        </Text>
+      </View>
+
       {/* Two-column: instructions + topics */}
       <View style={styles.twoCol}>
 
@@ -179,6 +186,16 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: '#EDECEA',
   },
+
+  wakeupNotice: {
+    borderLeftWidth: 3,
+    borderLeftColor: '#C8401A',
+    paddingLeft: 12,
+    paddingVertical: 4,
+    marginBottom: 20,
+  },
+  wakeupText: { fontSize: 15, color: '#4A4942', lineHeight: 22 },
+  wakeupBold: { fontWeight: '700', color: '#1A1A1A' },
 
   customHint: { fontSize: 15, color: '#4A4942', lineHeight: 22, marginBottom: 16 },
 

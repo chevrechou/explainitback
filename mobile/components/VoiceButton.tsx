@@ -147,34 +147,50 @@ export function VoiceButton({ onTranscript, disabled }: Props) {
   })
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.outerWrapper}>
       {isRecording && (
-        <>
-          <Animated.View style={[styles.ring, ringStyle(ring1)]} />
-          <Animated.View style={[styles.ring, ringStyle(ring2)]} />
-        </>
+        <View style={styles.tooltip}>
+          <Text style={styles.tooltipText}>Tap to stop</Text>
+        </View>
       )}
-      <Pressable
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        disabled={disabled || isTranscribing}
-        style={[
-          styles.button,
-          isRecording && styles.recording,
-          (disabled || isTranscribing) && styles.faded,
-        ]}
-      >
-        {isTranscribing ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.icon}>{isRecording ? '⏹' : '🎙'}</Text>
+      <View style={styles.wrapper}>
+        {isRecording && (
+          <>
+            <Animated.View style={[styles.ring, ringStyle(ring1)]} />
+            <Animated.View style={[styles.ring, ringStyle(ring2)]} />
+          </>
         )}
-      </Pressable>
+        <Pressable
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+          disabled={disabled || isTranscribing}
+          style={[
+            styles.button,
+            isRecording && styles.recording,
+            (disabled || isTranscribing) && styles.faded,
+          ]}
+        >
+          {isTranscribing ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.icon}>{isRecording ? '⏹' : '🎙'}</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
+  outerWrapper: { alignItems: 'center' },
+  tooltip: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 8,
+  },
+  tooltipText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   wrapper: { width: 56, height: 56, alignItems: 'center', justifyContent: 'center' },
   ring: {
     position: 'absolute',
