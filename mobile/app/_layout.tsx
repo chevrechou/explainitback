@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Stack } from 'expo-router'
+import { Analytics } from '@vercel/analytics/react'
 import { useStore } from '../lib/store'
 
 export default function RootLayout() {
@@ -10,11 +11,14 @@ export default function RootLayout() {
   }, [])
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="auth" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="session/[id]" />
-      <Stack.Screen name="scorecard/[id]" />
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="auth" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="session/[id]" />
+        <Stack.Screen name="scorecard/[id]" />
+      </Stack>
+      <Analytics />
+    </>
   )
 }
