@@ -33,16 +33,21 @@ async function request<T>(
 ): Promise<T> {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' }
   if (token) headers['Authorization'] = `Bearer ${token}`
-  try {
-    return await attempt<T>(path, options, headers, timeoutMs)
-  } catch (err: any) {
-    // Network-level failure (server sleeping / connection reset): retry once after 4s
-    if (err instanceof TypeError) {
-      await new Promise(r => setTimeout(r, 4000))
-      return attempt<T>(path, options, headers, timeoutMs)
+  // TypeError = network-level failure (Render free tier cold-starting).
+  // Retry every 8s for up to ~56s total before giving up.
+  const MAX_RETRIES = 7
+  for (let i = 0; i <= MAX_RETRIES; i++) {
+    try {
+      return await attempt<T>(path, options, headers, timeoutMs)
+    } catch (err: any) {
+      if (err instanceof TypeError && i < MAX_RETRIES) {
+        await new Promise(r => setTimeout(r, 8000))
+        continue
+      }
+      throw err
     }
-    throw err
   }
+  throw new Error('Network error')
 }
 
 export const api = {

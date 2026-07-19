@@ -26,15 +26,6 @@ async def chat(system_prompt: str, messages: list[dict], topic: str = "") -> str
         from app.services.mock import mock_chat
         return await mock_chat(topic, messages)
 
-    if provider == "gemini":
-        from app.services.gemini import gemini_chat
-        try:
-            return await gemini_chat(system_prompt, messages)
-        except Exception as exc:
-            logger.warning("Gemini failed (%s); falling back to Groq", exc)
-            from app.services.groq import groq_chat
-            return await groq_chat(system_prompt, messages)
-
     if provider == "groq":
         from app.services.groq import groq_chat
         return await groq_chat(system_prompt, messages)

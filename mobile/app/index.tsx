@@ -23,6 +23,7 @@ export default function TopicPicker() {
   const [docValue, setDocValue] = useState('')
   const [docLabel, setDocLabel] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<{ msg: string; retry: () => void } | null>(null)
   const { user, startSession } = useStore()
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function TopicPicker() {
 
   async function handleStart(topic: string, documentText?: string) {
     setLoading(true)
+    setError(null)
     try {
       const isUrl = documentText?.startsWith('http')
       const res = await api.startSession(
@@ -44,7 +46,13 @@ export default function TopicPicker() {
       startSession(sessionId, res.topic, res.first_message, isUrl ? null : (documentText ?? null), res.sub_concept_names ?? [])
       router.push(`/session/${sessionId}`)
     } catch (e: any) {
-      alert(e.message)
+      const isNetwork = e instanceof TypeError || e?.message === 'Network error'
+      setError({
+        msg: isNetwork
+          ? 'Could not reach the server. It may still be waking up.'
+          : e.message,
+        retry: () => handleStart(topic, documentText),
+      })
     } finally {
       setLoading(false)
     }
@@ -79,6 +87,15 @@ export default function TopicPicker() {
           {' '}while the server wakes up. Subsequent messages will be fast.
         </Text>
       </View>
+
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorMsg}>{error.msg}</Text>
+          <Pressable onPress={error.retry} style={styles.retryBtn}>
+            <Text style={styles.retryText}>Try again</Text>
+          </Pressable>
+        </View>
+      )}
 
       {/* Two-column: instructions + topics */}
       <View style={styles.twoCol}>
@@ -198,6 +215,26 @@ const styles = StyleSheet.create({
   wakeupBold: { fontWeight: '700', color: '#1A1A1A' },
 
   customHint: { fontSize: 15, color: '#4A4942', lineHeight: 22, marginBottom: 16 },
+
+  errorBanner: {
+    backgroundColor: '#FDF2F0',
+    borderWidth: 1,
+    borderColor: '#E8C4BC',
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  errorMsg: { flex: 1, fontSize: 14, color: '#7A2010', lineHeight: 20 },
+  retryBtn: {
+    backgroundColor: '#C8401A',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  retryText: { fontSize: 13, fontWeight: '700', color: '#fff' },
 
   howPanel: {
     backgroundColor: '#EDECEA',

@@ -12,9 +12,6 @@ from app.prompts.evaluator import EVALUATOR_SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
-_EVAL_MODEL = "gemini-2.0-flash"
-_EVAL_FALLBACK_MODEL = "gemini-1.5-flash"
-_GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 _GROQ_CHAT_URL = "https://api.groq.com/openai/v1/chat/completions"
 _GROQ_EVAL_MODEL = "llama-3.3-70b-versatile"
 
@@ -89,38 +86,6 @@ async def _call_groq_eval(user_message: str) -> str:
     return choices[0]["message"]["content"]
 
 
-async def _call_gemini_eval(user_message: str, model: str, retry_on_429: bool = True) -> str:
-    url = f"{_GEMINI_BASE}/{model}:generateContent?key={settings.gemini_api_key}"
-    payload = {
-        "systemInstruction": {"parts": [{"text": EVALUATOR_SYSTEM_PROMPT}]},
-        "contents": [{"role": "user", "parts": [{"text": user_message}]}],
-        "generationConfig": {
-            "maxOutputTokens": 4096,
-            "temperature": 0.1,
-            "responseMimeType": "application/json",
-        },
-    }
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(url, json=payload)
-        if resp.status_code == 429 and retry_on_429:
-            logger.warning("Gemini eval 429 rate limit on %s — retrying after 25s", model)
-            await asyncio.sleep(25)
-            resp = await client.post(url, json=payload)
-        if not resp.is_success:
-            raise ValueError(f"Gemini eval HTTP {resp.status_code} on model {model}")
-        data = resp.json()
-    candidates = data.get("candidates", [])
-    if not candidates:
-        logger.error("Evaluator: no candidates from %s. promptFeedback: %s | full response keys: %s",
-                     model, data.get("promptFeedback"), list(data.keys()))
-        raise ValueError(f"Evaluator: no candidates from {model}")
-    try:
-        return candidates[0]["content"]["parts"][0]["text"]
-    except (KeyError, IndexError) as e:
-        logger.error("Evaluator candidates structure error on %s: %s | candidates: %.500s",
-                     model, e, str(candidates)[:500])
-        raise ValueError(f"Unexpected candidates structure: {e}")
-
 
 def _parse_assessment(raw: str, topic: str) -> Optional[Assessment]:
     json_text = raw.strip()
@@ -155,20 +120,11 @@ async def run_evaluation(
 
     user_message = _build_eval_user_message(topic, sub_concepts, conversation, document_text)
 
-    # Primary: Groq — fast and on a separate rate-limit quota from the Gemini chat calls
     try:
         raw = await _call_groq_eval(user_message)
     except Exception as e:
-        logger.warning("Groq eval failed (%s), falling back to Gemini", e)
-        try:
-            raw = await _call_gemini_eval(user_message, _EVAL_MODEL)
-        except Exception as e2:
-            logger.warning("Gemini eval %s failed (%s), trying %s", _EVAL_MODEL, e2, _EVAL_FALLBACK_MODEL)
-            try:
-                raw = await _call_gemini_eval(user_message, _EVAL_FALLBACK_MODEL)
-            except Exception as e3:
-                logger.error("All eval models failed: %s", e3)
-                return None
+        logger.error("Groq eval failed: %s", e)
+        return None
 
     logger.info("Evaluator raw response (%d chars): %.600s", len(raw), raw[:600])
     result = _parse_assessment(raw, topic)

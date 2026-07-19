@@ -2,8 +2,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     ai_provider: str = "mock"
-    gemini_api_key: str = ""
-    groq_api_key: str = ""
+groq_api_key: str = ""
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_service_key: str = ""
