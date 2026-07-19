@@ -26,7 +26,10 @@ async def chat(system_prompt: str, messages: list[dict], topic: str = "") -> str
         from app.services.mock import mock_chat
         return await mock_chat(topic, messages)
 
-    if provider == "groq":
+    # Treat "groq" or any unrecognised value (e.g. legacy "gemini") as Groq.
+    if provider != "mock":
+        if provider not in ("groq",):
+            logger.warning("Unknown AI_PROVIDER %r — falling back to Groq", provider)
         from app.services.groq import groq_chat
         return await groq_chat(system_prompt, messages)
 
